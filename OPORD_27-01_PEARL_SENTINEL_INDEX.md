@@ -30,6 +30,7 @@
 | **B** | [OPORD_27-01_ANNEX_B_Intelligence.md](OPORD_27-01_ANNEX_B_Intelligence.md) | Threat assessment and intelligence | APT43 profile, MLCOA/MDCOA, PIRs, threat terrain analysis, intel dissemination |
 | **C** | [OPORD_27-01_ANNEX_C_Operations.md](OPORD_27-01_ANNEX_C_Operations.md) | Operational execution & synchronization | Phase I-III timeline, daily rhythm, metrics, control measures, risk mitigation |
 | **J** | [OPORD_27-01_ANNEX_J_CyberTechnicalProcedures.md](OPORD_27-01_ANNEX_J_CyberTechnicalProcedures.md) | Technical hunting & incident response | Hunt hypotheses, IR playbook, tool specifications, forensic procedures |
+| **K** | [OPORD_27-01_ANNEX_K_IncidentResponsePlaybooks.md](OPORD_27-01_ANNEX_K_IncidentResponsePlaybooks.md) | Detailed incident response playbooks | 3 playbooks (credential compromise, malware detection, lateral movement), incident report template, post-incident procedures |
 | **L** | [OPORD_27-01_ANNEX_L_ROE.md](OPORD_27-01_ANNEX_L_ROE.md) | Rules of Engagement & Legal Authority | DCO-M/DCO-RA authority, pre-authorized actions, ROE constraints, escalation procedures |
 
 ---
