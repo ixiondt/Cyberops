@@ -1,0 +1,64 @@
+# OS & Editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.env
+.env.local
+
+# Claude Code
+.claude/
+claude-code.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
+
+# Personal/Local
+local/
+personal/
+scratch/
+*.draft
+*.wip
+
+# Sensitive data (do NOT commit)
+*.classified
+*.secret
+secrets.json
+credentials.json
+private-keys/
+sensitive-data/
+
+# Build artifacts
+dist/
+build/
+*.pyc
+__pycache__/
+node_modules/
+*.zip
+
+# OS-specific
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Node / JavaScript
+package-lock.json
+yarn.lock
+
+# Python
+venv/
+env/
+.pytest_cache/
+*.egg-info/
+
+# IDE
+*.iml
+.gradle/
