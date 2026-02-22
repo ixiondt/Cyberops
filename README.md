@@ -18,7 +18,7 @@ Each role is **doctrinally grounded** (ADP 5-0, FM 3-12, JP 3-12) and designed t
 
 ## Who This Is For
 
-- **U.S. Army Cyber Corps officers** (88A, 17C, etc.)
+- **U.S. Army Cyber Corps officers** (17A, 17C, etc.)
 - **Cyber planners** supporting MDMP or operations process
 - **Cyber intelligence analysts** preparing threat assessments or COA analysis
 - **Staff elements** requiring cyber running estimates or decision support
