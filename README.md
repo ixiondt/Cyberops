@@ -47,39 +47,60 @@ Each role is **doctrinally grounded** (ADP 5-0, FM 3-12, JP 3-12) and designed t
 
 ## Quick Start
 
-### Option 1: Start with AI Planning (Claude Code)
+### Option 1: Create New Operation & Use Dashboard
 
 ```bash
-# 1. Copy CLAUDE.md to project root (auto-loaded)
-# 2. Start Claude Code
-claude code .
+# 1. Create operation from template
+cp -r operation/OPERATION_TEMPLATE operation/OP-[CODE]_[TYPE]_[DATE]
 
-# 3. Request what you need
-"Give me a cyber running estimate"
-"Switch to host analyst mode"
-"I'm at Step 2 of MDMP — what do I need?"
-```
+# 2. Edit OPERATION_METADATA.md with OPORD details
+# Fill in: operation name, command structure, mission, timeline, authorities
 
-### Option 2: Use Interactive Dashboards
-
-```bash
-# 1. Install
+# 3. Install dependencies (first time only)
 npm install
 
-# 2. Start server
+# 4. Start dashboard server
 node server.js
 
-# 3. Open browser
-# MDMP Planning: http://localhost:3000/mdmp-dashboard.html
-# Operations Tracking: http://localhost:3000/
+# 5. Open unified dashboard
+# http://localhost:3000
+# - Operation selector auto-loads all OP-* folders
+# - Select your operation from dropdown
 
-# 4. Export annexes
-# Click "Export Annex M" or "Export Annex A" on MDMP dashboard
+# 6. Use dashboard
+# - MDMP Planner: Add planning products, track step progress
+# - Overview: Monitor operation phase and transitions
+# - Incidents: Track incident reports
+# - POAMs: Track remediation actions
+# - Network Map: Visualize network topology
+```
+
+### Option 2: Start with AI Planning (Claude Code)
+
+```bash
+# 1. Start Claude Code
+claude code .
+
+# 2. Request analysis for your operation
+"Create a cyber running estimate for OP-[CODE]"
+"Give me threat COA analysis for this operation"
+"Switch to host analyst mode"
 ```
 
 ### Option 3: Both (Full System)
 
-Run dashboards + Claude Code simultaneously for complete system.
+Run dashboards + Claude Code simultaneously:
+
+```bash
+# Terminal 1: Start server
+node server.js
+
+# Terminal 2: Start Claude Code
+claude code .
+
+# Use dashboard for planning/tracking
+# Use Claude for analysis/products
+```
 
 ---
 
@@ -159,6 +180,14 @@ Use aliases for brevity:
 ---
 
 ## Features
+
+### 🏢 Multi-Operation Management
+- **Operation Selector** — Dashboard auto-loads all active operations from `operation/` folder
+- **Create from Template** — Generate new operation folder in seconds
+- **Automatic Discovery** — New operations appear in selector immediately
+- **Independent Tracking** — Each operation maintains separate MDMP products, incidents, POAMs, intelligence
+- **Dynamic Phase Management** — Track each operation through Planning → Execution → Transition → Completion phases
+- **Context Switching** — Switch between operations mid-session without losing state
 
 ### 🤖 Three AI Roles
 
@@ -242,11 +271,69 @@ See **CLAUDE.md** for full doctrinal references.
 
 ---
 
+## Multi-Operation Workflow
+
+### Managing Multiple OPORDs
+
+**Scenario:** Multiple cyber operations active simultaneously (OPORD A, B, C)
+
+```
+1. Dashboard loads all operations:
+   - OP-DEFENDER_DCO-RA_2026-02-25
+   - OP-SENTINEL_DCO-IDM_2026-02-24
+   - OP-EXAMPLE_HUNT_2026-02-23
+
+2. User selects OP-DEFENDER from dropdown
+   → All data refreshes to show DEFENDER products/incidents/POAMs
+
+3. User switches to OP-SENTINEL
+   → Dashboard shows SENTINEL's MDMP steps, phase, incidents, etc.
+
+4. Each operation maintains:
+   - Independent MDMP planning products
+   - Separate incident logs and POAMs
+   - Own network topology and intelligence files
+   - Distinct phase and status tracking
+   - Unique personnel and command structure
+```
+
+### Creating Operations at Scale
+
+When new OPORDs arrive:
+
+```bash
+# Rapid operation creation (30 seconds per OPORD)
+for OPORD in OPORD-A OPORD-B OPORD-C; do
+  cp -r operation/OPERATION_TEMPLATE operation/OP-${OPORD}_2026-02-25
+  # Edit OPERATION_METADATA.md for each
+done
+
+# Restart dashboard (auto-discovers new operations)
+node server.js
+
+# All operations immediately available in selector
+```
+
+### Claude Integration
+
+Request analysis scoped to specific operations:
+
+```
+"Analyze planning risks for OP-DEFENDER"
+"Create threat COA for OP-SENTINEL"
+"Give me incident timeline for OP-EXAMPLE"
+"Switch to host analyst mode — analyze findings from OP-DEFENDER"
+```
+
+---
+
 ## Key Principles
 
 ✅ **Unclassified discipline** — All analysis maintains unclassified discipline
 ✅ **Doctrine-grounded** — Cite doctrine by publication and paragraph
 ✅ **Decision-focused** — Products support commander decision-making
+✅ **Multi-operation capable** — Manage multiple concurrent OPORDs independently
+✅ **Rapid deployment** — Create new operations from template in seconds
 ✅ **Peer-level support** — Speak as a peer staff officer
 ✅ **Risk-aware** — Articulate cyber risks in mission terms
 

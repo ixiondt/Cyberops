@@ -3,6 +3,62 @@
 
 ---
 
+## 🚀 INITIALIZATION — New OPORD Checklist
+
+When creating a new operation from this template:
+
+### Step 1: Copy Template
+```bash
+# From project root:
+cp -r operation/OPERATION_TEMPLATE operation/OP-[CODE]_[TYPE]_[DATE]
+
+# Example:
+cp -r operation/OPERATION_TEMPLATE operation/OP-DEFENDER_DCO-RA_2026-02-25
+```
+
+### Step 2: Update OPERATION_METADATA.md
+**Replace placeholders in `OPERATION_METADATA.md` with actual OPORD data:**
+
+- [ ] **OPERATION IDENTIFICATION** — Code, Name, Type
+- [ ] **DATES AND TIMELINE** — Start/end dates, phase dates
+- [ ] **COMMAND STRUCTURE** — Commander, OIC, operations team
+- [ ] **MOC COMPOSITION** — Personnel roster with roles/contact info
+- [ ] **MISSION ANALYSIS** — Specified/implied/essential tasks
+- [ ] **CYBER RESOURCES** — Available tools, EDR, SIEM, segmentation
+- [ ] **AUTHORITIES & CONSTRAINTS** — ROE, classification level, authority chain
+- [ ] **CURRENT STATUS** — Set to: `**Current Status:** Planning Phase - Deployment & Integration`
+
+### Step 3: Dashboard Integration
+The dashboard automatically discovers new operations:
+
+```bash
+# 1. Start server (if not running)
+node server.js
+
+# 2. Open dashboard
+# http://localhost:3000
+
+# 3. Select operation from dropdown
+# Operation selector auto-loads all OP-* folders
+```
+
+### Step 4: Initialize MDMP Process
+**In dashboard, on MDMP Planner tab:**
+
+- [ ] Add planning products to PLANNING/ folder
+- [ ] Add intelligence products to INTELLIGENCE/ folder
+- [ ] Add operations products to OPERATIONS/ folder
+- [ ] Monitor MDMP step counts (auto-updates from files)
+
+### Step 5: Set Initial Phase
+**In dashboard, on Overview tab:**
+
+- [ ] Phase timeline shows "Planning Phase" by default
+- [ ] Click phase circles to transition (Execution → Transition → Completion)
+- [ ] Phase transitions persist to OPERATION_METADATA.md
+
+---
+
 ## OPERATION METADATA
 
 **Operation Code:** [OP-CODE]

@@ -641,6 +641,107 @@ User submits to HQ as OPORD annex
 
 ---
 
+## MULTI-OPERATION MANAGEMENT
+
+The system supports **multiple simultaneous operations**. Each operation maintains independent planning products, incident tracking, and analysis artifacts.
+
+### Creating a New Operation from OPORD
+
+**When a new OPORD arrives:**
+
+1. **Create operation folder from template:**
+   ```bash
+   # Copy template to new operation directory
+   cp -r operation/OPERATION_TEMPLATE operation/OP-[CODE]_[TYPE]_[DATE]
+
+   # Example:
+   cp -r operation/OPERATION_TEMPLATE operation/OP-EXAMPLE_DCO-RA_2026-02-25
+   ```
+
+2. **Initialize OPERATION_METADATA.md:**
+   ```bash
+   # Edit new operation's metadata file with OPORD details:
+   # - Operation Code, Name, Type
+   # - Unit/Element, Command Structure
+   # - Mission, Authorities, Timeline
+   # - Personnel assignments
+   # - Supporting elements and reachback
+   ```
+
+   **Template fields to populate:**
+   - **OPERATION IDENTIFICATION** (code, name, nickname, type)
+   - **DATES AND TIMELINE** (start, end, phase dates)
+   - **COMMAND STRUCTURE** (commander, OIC, operations team)
+   - **MOC COMPOSITION** (personnel roster with roles)
+   - **MISSION ANALYSIS** (specified/implied/essential tasks)
+   - **RESOURCES** (available tools, authorities, constraints)
+   - **CURRENT STATUS** (initial phase: "Planning Phase - Deployment & Integration")
+
+3. **Start the dashboard server:**
+   ```bash
+   node server.js
+   # Access at http://localhost:3000
+   ```
+
+4. **Select operation in dashboard:**
+   - Open unified dashboard: `http://localhost:3000/`
+   - Operation selector (top header) auto-loads all operations from `operation/` folder
+   - Select new operation by name
+   - Dashboard initializes with new operation context
+
+5. **Initialize MDMP planning:**
+   - Navigate to "MDMP Planner" tab
+   - Dashboard displays 7 MDMP steps
+   - All initial deliverable counts show as 0 (awaiting first products)
+   - Start adding planning products as team develops them
+
+6. **Track operation phases:**
+   - **Overview tab** shows current operation phase with visual timeline
+   - Click phase circles to transition (Planning → Execution → Transition → Completion)
+   - Dashboard context and tab recommendations adapt to current phase
+   - Phase transitions persist to OPERATION_METADATA.md
+
+### Multi-Operation Workflow
+
+**While running multiple operations:**
+
+1. **Dashboard supports operation switching:**
+   - Use operation selector dropdown to switch between active OPORDs
+   - All data reloads to reflect selected operation
+   - Current phase, incidents, POAMs, network map all operation-specific
+
+2. **Each operation maintains independent data:**
+   - MDMP products stored in `operation/OP-[NAME]/PLANNING/`, `/INTELLIGENCE/`, `/OPERATIONS/`
+   - Incidents tracked in `operation/OP-[NAME]/EXECUTION/`
+   - POAMs maintained in `operation/OP-[NAME]/POAMs/`
+   - Network data stored in `operation/OP-[NAME]/INTELLIGENCE/`
+   - Assessment data in `operation/OP-[NAME]/ASSESSMENT/`
+
+3. **Claude roles work across operations:**
+   - Request analysis for specific operation: "Analyze OPORD for OP-EXAMPLE"
+   - Claude automatically references correct operation folder
+   - Store analysis products in operation-specific directories
+
+4. **Export products per operation:**
+   - Export Annex M from specific operation's MDMP products
+   - Each OPORD maintains separate Word document exports
+   - All exports timestamped with operation ID and date
+
+### API Endpoints for Multi-Operation Support
+
+```
+GET  /api/operations               - List all active operations
+GET  /api/operations/{opId}        - Get operation metadata (status, phase, etc.)
+GET  /api/operations/{opId}/mdmp-products  - Get all MDMP deliverables for operation
+GET  /api/operations/{opId}/poams          - Get all POAMs for operation
+GET  /api/operations/{opId}/incidents      - Get all incidents for operation
+PUT  /api/operations/{opId}/phase          - Transition operation to new phase
+POST /api/operations/{opId}/poams          - Create new POAM for operation
+POST /api/operations/{opId}/incidents      - Create new incident for operation
+```
+
+---
+
 ## INTEGRATED WORKFLOWS
 
 ### Workflow 1: MDMP Planning with Export
@@ -730,12 +831,16 @@ User submits to HQ as OPORD annex
 
 | Task | How to Do It |
 |------|-------------|
+| **Create new operation** | `cp -r operation/OPERATION_TEMPLATE operation/OP-[CODE]_[TYPE]_[DATE]` → edit OPERATION_METADATA.md |
 | **Start interactive dashboards** | `node server.js` → `http://localhost:3000` |
-| **Use MDMP planner** | Open `/mdmp-dashboard.html` → fill products → export annex |
-| **Export to Word** | Click "Export Annex M/A" button on MDMP dashboard |
-| **Get AI planning help** | `claude code .` → request running estimate or COA analysis |
+| **Select operation** | Use operation selector dropdown in dashboard header |
+| **Use MDMP planner** | Click "MDMP Planner" tab → select steps → add deliverables |
+| **Track phases** | "Overview" tab shows phase timeline → click to transition phases |
+| **Export to Word** | Click "Export" on MDMP product in MDMP Planner tab |
+| **Get AI planning help** | `claude code .` → request analysis for specific OPORD |
 | **Switch analyst roles** | "Switch to host analyst mode" or "Network analyst perspective" |
-| **Organize mission products** | Copy `operation/OPERATION_TEMPLATE/` → fill metadata → store products |
+| **Track incidents** | "Incidents" tab → create/update → tied to specific operation |
+| **Manage POAMs** | "POAMs" tab → create/edit → tied to specific operation |
 | **Integrate multiple roles** | Use dashboards + Claude simultaneously for complete analysis |
 
 ---
