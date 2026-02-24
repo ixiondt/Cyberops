@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDMP Planning Dashboard - OP-DEFENDER</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #001428 0%, #003d7a 50%, #001428 100%);
+            border-bottom: 3px solid #0066cc;
+            padding: 25px 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        /* MDMP Process Flow */
+        .mdmp-flow {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            overflow-x: auto;
+            padding: 20px 0;
+            position: relative;
+        }
+
+        .mdmp-flow::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #0066cc 0%, transparent 50%, #0066cc 100%);
+            z-index: 1;
+        }
+
+        .mdmp-step {
+            flex: 0 0 200px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid rgba(100, 150, 200, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .mdmp-step:hover {
+            border-color: #0066cc;
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .mdmp-step.complete {
+            border-color: #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+        }
+
+        .mdmp-step.in-progress {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+        }
+
+        .mdmp-step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: #0066cc;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+        }
+
+        .mdmp-step.complete .mdmp-step-number {
+            background: #10b981;
+        }
+
+        .mdmp-step.in-progress .mdmp-step-number {
+            background: #f59e0b;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+        }
+
+        .mdmp-step-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .mdmp-step-name {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .mdmp-step-status {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(100, 150, 200, 0.2);
+        }
+
+        /* Details Section */
+        .mdmp-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .mdmp-section {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid rgba(100, 150, 200, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .mdmp-section:hover {
+            border-color: #0066cc;
+            box-shadow: 0 8px 25px rgba(0, 102, 204, 0.2);
+        }
+
+        .mdmp-section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .mdmp-section-icon {
+            font-size: 24px;
+        }
+
+        .mdmp-section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .mdmp-section-subtitle {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .product-list {
+            list-style: none;
+        }
+
+        .product-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(100, 200, 255, 0.05);
+            border-left: 3px solid #00d4ff;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #cbd5e1;
+            transition: all 0.3s ease;
+        }
+
+        .product-item:hover {
+            background: rgba(100, 200, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .product-item.complete {
+            border-left-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .product-item.in-progress {
+            border-left-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #ffffff;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .product-status {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-complete {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-in-progress {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .status-pending {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* Timeline */
+        .mdmp-timeline {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid rgba(100, 150, 200, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 40px;
+        }
+
+        .timeline-header {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 25px;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .timeline-marker {
+            width: 20px;
+            height: 20px;
+            background: #0066cc;
+            border-radius: 50%;
+            margin-right: 20px;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-date {
+            font-size: 11px;
+            color: #00d4ff;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .timeline-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .timeline-description {
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        /* Decision Gates */
+        .decision-gates {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .decision-gate {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid rgba(220, 38, 38, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .decision-gate-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #fca5a5;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .decision-gate-content {
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .decision-question {
+            color: #fca5a5;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        /* Personnel */
+        .personnel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .personnel-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid rgba(100, 150, 200, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .personnel-role {
+            font-size: 12px;
+            color: #00d4ff;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .personnel-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .personnel-responsibility {
+            font-size: 11px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            background: rgba(100, 200, 255, 0.05);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 2px solid #00d4ff;
+        }
+
+        /* Stats */
+        .mdmp-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid rgba(100, 150, 200, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .stat-description {
+            font-size: 11px;
+            color: #cbd5e1;
+            margin-top: 8px;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid rgba(100, 150, 200, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 40px;
+        }
+
+        .progress-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 15px;
+        }
+
+        .progress-item {
+            margin-bottom: 20px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(100, 150, 200, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #0066cc);
+            transition: width 0.3s ease;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #0066cc;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(100, 150, 200, 0.2);
+            padding-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .modal-close {
+            font-size: 28px;
+            color: #94a3b8;
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #dc2626;
+        }
+
+        .modal-body {
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .mdmp-details {
+                grid-template-columns: 1fr;
+            }
+
+            .mdmp-flow {
+                flex-wrap: wrap;
+            }
+
+            .mdmp-step {
+                flex: 0 0 calc(50% - 8px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+            }
+
+            .header-title {
+                font-size: 20px;
+            }
+
+            .container {
+                padding: 15px 10px;
+            }
+
+            .mdmp-step {
+                flex: 0 0 calc(50% - 8px);
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(100, 150, 200, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 212, 255, 0.5);
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        .nav-button {
+            padding: 12px 25px;
+            background: rgba(0, 102, 204, 0.2);
+            border: 1px solid #0066cc;
+            border-radius: 8px;
+            color: #00d4ff;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-button:hover {
+            background: rgba(0, 102, 204, 0.4);
+            box-shadow: 0 0 20px rgba(0, 102, 204, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">📊 MDMP Planning Dashboard</div>
+            <div class="header-subtitle">Military Decision-Making Process - OP-DEFENDER BPEnergy DCO-RA</div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Stats Overview -->
+        <div class="mdmp-stats">
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-label">Planning Steps Complete</div>
+                <div class="stat-value">7 / 7</div>
+                <div class="stat-description">All MDMP phases executed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-label">Products Generated</div>
+                <div class="stat-value">32+</div>
+                <div class="stat-description">All planning outputs delivered</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏰</div>
+                <div class="stat-label">Planning Duration</div>
+                <div class="stat-value">4 days</div>
+                <div class="stat-description">2026-02-17 to 2026-02-23</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-label">COA Recommended</div>
+                <div class="stat-value">COA 2</div>
+                <div class="stat-description">Rapid Response - 8 days</div>
+            </div>
+        </div>
+
+        <!-- MDMP Process Flow -->
+        <h2 style="color: #ffffff; margin-bottom: 20px; font-size: 18px;">📈 MDMP Planning Process Flow</h2>
+        <div class="mdmp-flow">
+            <div class="mdmp-step in-progress" onclick="showStepDetails(1)">
+                <div class="mdmp-step-number">1</div>
+                <div class="mdmp-step-title">Step 1</div>
+                <div class="mdmp-step-name">Receipt of Mission</div>
+                <div class="mdmp-step-status">Complete</div>
+            </div>
+
+            <div class="mdmp-step complete" onclick="showStepDetails(2)">
+                <div class="mdmp-step-number">2</div>
+                <div class="mdmp-step-title">Step 2</div>
+                <div class="mdmp-step-name">Mission Analysis</div>
+                <div class="mdmp-step-status">Complete</div>
+            </div>
+
+            <div class="mdmp-step complete" onclick="showStepDetails(3)">
+                <div class="mdmp-step-number">3</div>
+                <div class="mdmp-step-title">Step 3</div>
+                <div class="mdmp-step-name">COA Development</div>
+                <div class="mdmp-step-status">Complete</div>
+            </div>
+
+            <div class="mdmp-step complete" onclick="showStepDetails(4)">
+                <div class="mdmp-step-number">4</div>
+                <div class="mdmp-step-title">Step 4</div>
+                <div class="mdmp-step-name">COA Analysis</div>
+                <div class="mdmp-step-status">Complete</div>
+            </div>
+
+            <div class="mdmp-step complete" onclick="showStepDetails(5)">
+                <div class="mdmp-step-number">5</div>
+                <div class="mdmp-step-title">Step 5</div>
+                <div class="mdmp-step-name">COA Comparison</div>
+                <div class="mdmp-step-status">Complete</div>
+            </div>
+
+            <div class="mdmp-step complete" onclick="showStepDetails(6)">
+                <div class="mdmp-step-number">6</div>
+                <div class="mdmp-step-title">Step 6</div>
+                <div class="mdmp-step-name">COA Approval</div>
+                <div class="mdmp-step-status">Pending CDR</div>
+            </div>
+
+            <div class="mdmp-step pending" onclick="showStepDetails(7)">
+                <div class="mdmp-step-number">7</div>
+                <div class="mdmp-step-title">Step 7</div>
+                <div class="mdmp-step-name">Orders Production</div>
+                <div class="mdmp-step-status">Ready</div>
+            </div>
+        </div>
+
+        <!-- Progress Overview -->
+        <div class="progress-section">
+            <div class="progress-title">📊 MDMP Process Completion Status</div>
+
+            <div class="progress-item">
+                <div class="progress-label">
+                    <span>Mission Analysis & Planning</span>
+                    <span>100%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                </div>
+            </div>
+
+            <div class="progress-item">
+                <div class="progress-label">
+                    <span>COA Development & Analysis</span>
+                    <span>100%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                </div>
+            </div>
+
+            <div class="progress-item">
+                <div class="progress-label">
+                    <span>Decision & Approval</span>
+                    <span>95%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 95%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                </div>
+            </div>
+
+            <div class="progress-item">
+                <div class="progress-label">
+                    <span>Orders Production</span>
+                    <span>100%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MDMP Steps Details -->
+        <h2 style="color: #ffffff; margin: 40px 0 20px 0; font-size: 18px;">📋 MDMP Products by Step</h2>
+        <div class="mdmp-details">
+            <!-- Step 1 -->
+            <div class="mdmp-section">
+                <div class="mdmp-section-header">
+                    <div class="mdmp-section-icon">1️⃣</div>
+                    <div>
+                        <div class="mdmp-section-title">Receipt of Mission</div>
+                        <div class="mdmp-section-subtitle">Initial planning and resource gathering</div>
+                    </div>
+                </div>
+                <ul class="product-list">
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Warning Order</span>
+                        OPORD 26-02 Receipt - Mission parameters briefed
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Initial Cyber Running Estimate</span>
+                        Facts, assumptions, limitations identified
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Operation Metadata</span>
+                        Mission context, authorities, personnel identified
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Resource Assessment</span>
+                        CPT 173/174 elements confirmed available
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="mdmp-section">
+                <div class="mdmp-section-header">
+                    <div class="mdmp-section-icon">2️⃣</div>
+                    <div>
+                        <div class="mdmp-section-title">Mission Analysis</div>
+                        <div class="mdmp-section-subtitle">Deep operational environment study</div>
+                    </div>
+                </div>
+                <ul class="product-list">
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Cyberspace IPB (Intelligence Prep of Battlefield)</span>
+                        Physical/Logical/Persona layers analyzed
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Threat COA Analysis (MLCOA/MDCOA)</span>
+                        APT41 likely and dangerous courses of action
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Priority Intelligence Requirements (PIRs)</span>
+                        4 critical information requirements identified
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Mission Essential Tasks (METs)</span>
+                        Identify, contain, eradicate, harden
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Updated Cyber Running Estimate</span>
+                        Mission analysis phase update
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="mdmp-section">
+                <div class="mdmp-section-header">
+                    <div class="mdmp-section-icon">3️⃣</div>
+                    <div>
+                        <div class="mdmp-section-title">COA Development</div>
+                        <div class="mdmp-section-subtitle">Multiple viable courses of action created</div>
+                    </div>
+                </div>
+                <ul class="product-list">
+                    <li class="product-item complete">
+                        <span class="product-name">✅ COA 1: Forensic-First Investigation</span>
+                        Deep investigation, slow response (14 days)
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ COA 2: Rapid Response (Selected)</span>
+                        Parallel investigation/remediation (8 days)
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ COA 3: Aggressive Rebuild</span>
+                        System rebuild approach (7 days)
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Synchronization Matrix</span>
+                        Task timing and coordination between elements
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Task Organization per COA</span>
+                        Personnel, roles, responsibilities defined
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="mdmp-section">
+                <div class="mdmp-section-header">
+                    <div class="mdmp-section-icon">4️⃣</div>
+                    <div>
+                        <div class="mdmp-section-title">COA Analysis (Wargaming)</div>
+                        <div class="mdmp-section-subtitle">Battle drill through each COA</div>
+                    </div>
+                </div>
+                <ul class="product-list">
+                    <li class="product-item complete">
+                        <span class="product-name">✅ COA 1 Wargame Results</span>
+                        Friction points, shortfalls, timing conflicts
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ COA 2 Wargame Results</span>
+                        Decision points, branch triggers, risks
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ COA 3 Wargame Results</span>
+                        Operational disruption scenarios, mitigation
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Red Team Challenge Responses</span>
+                        3 red team scenarios with blue counters
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Risk Assessment per COA</span>
+                        Probability/Impact matrices with mitigations
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="mdmp-section">
+                <div class="mdmp-section-header">
+                    <div class="mdmp-section-icon">5️⃣</div>
+                    <div>
+                        <div class="mdmp-section-title">COA Comparison</div>
+                        <div class="mdmp-section-subtitle">Evaluate and recommend best COA</div>
+                    </div>
+                </div>
+                <ul class="product-list">
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Evaluation Criteria (5 Primary)</span>
+                        Speed, mission risk, thoroughness, detection, resources
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Comparative Evaluation Matrix</span>
+                        COA 2: 575/100 (Best), COA 3: 500/100, COA 1: 485/100
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Detailed Recommendation Brief</span>
+                        COA 2 justified with 5 key reasons
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Alternative Strategy (COA 3)</span>
+                        Escalation branch if scope expands
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="mdmp-section">
+                <div class="mdmp-section-header">
+                    <div class="mdmp-section-icon">6️⃣</div>
+                    <div>
+                        <div class="mdmp-section-title">COA Approval</div>
+                        <div class="mdmp-section-subtitle">Commander decision and authorization</div>
+                    </div>
+                </div>
+                <ul class="product-list">
+                    <li class="product-item in-progress">
+                        <span class="product-name">⏳ Commander's Decision Brief</span>
+                        <span class="product-status"><span class="status-badge status-in-progress">Pending</span></span>
+                        Awaiting LTC Jackson approval
+                    </li>
+                    <li class="product-item in-progress">
+                        <span class="product-name">⏳ COA 2 Approval Authority</span>
+                        <span class="product-status"><span class="status-badge status-in-progress">Pending</span></span>
+                        Battalion Commander signature required
+                    </li>
+                    <li class="product-item in-progress">
+                        <span class="product-name">⏳ ARCYBER Notification</span>
+                        <span class="product-status"><span class="status-badge status-in-progress">Pending</span></span>
+                        Brief to higher HQ on selected COA
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Risk Acceptance (Commander)</span>
+                        Commander accepts MEDIUM residual risk
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Step 7 -->
+            <div class="mdmp-section">
+                <div class="mdmp-section-header">
+                    <div class="mdmp-section-icon">7️⃣</div>
+                    <div>
+                        <div class="mdmp-section-title">Orders Production</div>
+                        <div class="mdmp-section-subtitle">Detailed execution orders and annexes</div>
+                    </div>
+                </div>
+                <ul class="product-list">
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Main OPORD (OP-DEFENDER)</span>
+                        Situation, mission, execution, sustainment
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Annex M (Cyber Operations)</span>
+                        3-phase cyber execution strategy
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Annex A (Task Organization)</span>
+                        Command structure, personnel, roles
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Annex L (Authorities & ROE)</span>
+                        Authority constraints and approved actions
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ POAMs (Plans of Action & Milestones)</span>
+                        POAM-001 Investigation, POAM-002 Remediation
+                    </li>
+                    <li class="product-item complete">
+                        <span class="product-name">✅ Cyber Running Estimate (Final)</span>
+                        Orders production phase update
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <h2 style="color: #ffffff; margin: 40px 0 20px 0; font-size: 18px;">📅 MDMP Planning Timeline</h2>
+        <div class="mdmp-timeline">
+            <div class="timeline-header">Planning Process Timeline (4 Days)</div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="timeline-date">2026-02-17</div>
+                    <div class="timeline-title">Day 1: Receipt of Mission → Mission Analysis</div>
+                    <div class="timeline-description">OPORD 26-02 received. Warning order issued. Mission analysis initiated. CPB personnel briefed on lockfile.ps1 finding (dc2 compromise). Initial cyber running estimate developed.</div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="timeline-date">2026-02-18 to 2026-02-20</div>
+                    <div class="timeline-title">Days 2-4: Mission Analysis → COA Development</div>
+                    <div class="timeline-description">Mission analysis completed. Cyberspace IPB and threat COA analysis produced. 3 COAs developed (Forensic-First, Rapid Response, Aggressive Rebuild). Synchronization matrices and task organization per COA.</div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="timeline-date">2026-02-21 to 2026-02-22</div>
+                    <div class="timeline-title">Days 5-6: COA Analysis & Comparison</div>
+                    <div class="timeline-description">Wargaming conducted for all 3 COAs. Red team challenges and blue counters developed. Risk assessment completed. COA comparison matrix built. COA 2 (Rapid Response) recommended with evaluation score 575/100.</div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="timeline-date">2026-02-23</div>
+                    <div class="timeline-title">Day 7: Orders Production & Preparation</div>
+                    <div class="timeline-description">All annexes completed. POAM-001 and POAM-002 created. Commander's decision brief prepared. Ready for COA 2 approval and execution. Investigation phase (Phase I) to begin 2026-02-23 pending approval.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decision Gates -->
+        <h2 style="color: #ffffff; margin: 40px 0 20px 0; font-size: 18px;">🚪 Critical Decision Gates</h2>
+        <div class="decision-gates">
+            <div class="decision-gate">
+                <div class="decision-gate-title">🔴 GATE 1: COA Approval</div>
+                <div class="decision-gate-content">
+                    <span class="decision-question">When: 2026-02-23 (Now)</span>
+                    <div>
+                        <strong>Question:</strong> Approve COA 2 (Rapid Response)?
+                        <br><br>
+                        <strong>Decision Authority:</strong> LTC Jackson (Battalion Commander)
+                        <br><br>
+                        <strong>If YES:</strong> Execute Phase I Investigation immediately
+                        <br><br>
+                        <strong>If NO:</strong> Reconsider COA 1 or 3; brief commander on risks
+                    </div>
+                </div>
+            </div>
+
+            <div class="decision-gate">
+                <div class="decision-gate-title">🔴 GATE 2: Malware Identification</div>
+                <div class="decision-gate-content">
+                    <span class="decision-question">When: 2026-02-24 06:00 UTC</span>
+                    <div>
+                        <strong>Question:</strong> Malware family confirmed?
+                        <br><br>
+                        <strong>Expected Outcomes:</strong>
+                        <br>✓ ShadowPad/Winnti confirmed
+                        <br>✓ Unknown/Custom variant
+                        <br><br>
+                        <strong>Decision:</strong> Confirm threat assessment & proceed to Phase II
+                    </div>
+                </div>
+            </div>
+
+            <div class="decision-gate">
+                <div class="decision-gate-title">🔴 GATE 3: Scope Assessment</div>
+                <div class="decision-gate-content">
+                    <span class="decision-question">When: 2026-02-24 18:00 UTC</span>
+                    <div>
+                        <strong>Question:</strong> Scope of compromise?
+                        <br><br>
+                        <strong>Possible Outcomes:</strong>
+                        <br>✓ Limited to dc2 only
+                        <br>✓ 5-50 systems affected
+                        <br>✓ 100+ systems or OT compromise
+                        <br><br>
+                        <strong>Decision:</strong> Approve Phase II remediation scope
+                    </div>
+                </div>
+            </div>
+
+            <div class="decision-gate">
+                <div class="decision-gate-title">🔴 GATE 4: Escalation Branch</div>
+                <div class="decision-gate-content">
+                    <span class="decision-question">When: 2026-02-24 18:00 UTC (Conditional)</span>
+                    <div>
+                        <strong>Question:</strong> If extensive scope detected, switch to COA 3?
+                        <br><br>
+                        <strong>Trigger:</strong> 100+ systems OR OT compromise
+                        <br><br>
+                        <strong>Decision:</strong> Escalate to ARCYBER; consider rebuild vs remediation
+                    </div>
+                </div>
+            </div>
+
+            <div class="decision-gate">
+                <div class="decision-gate-title">🔴 GATE 5: Phase II Completion</div>
+                <div class="decision-gate-content">
+                    <span class="decision-question">When: 2026-03-02 18:00 UTC</span>
+                    <div>
+                        <strong>Question:</strong> Remediation successful?
+                        <br><br>
+                        <strong>Success Criteria:</strong>
+                        <br>✓ Systems clean (verified)
+                        <br>✓ Credentials reset
+                        <br>✓ Detection rules operational
+                        <br><br>
+                        <strong>Decision:</strong> Proceed to Phase III monitoring
+                    </div>
+                </div>
+            </div>
+
+            <div class="decision-gate">
+                <div class="decision-gate-title">🔴 GATE 6: Operation Closure</div>
+                <div class="decision-gate-content">
+                    <span class="decision-question">When: 2026-04-02 18:00 UTC</span>
+                    <div>
+                        <strong>Question:</strong> 30-day monitoring complete with zero recurrence?
+                        <br><br>
+                        <strong>Success Criteria:</strong>
+                        <br>✓ No malware recurrence
+                        <br>✓ No unauthorized access
+                        <br>✓ Detection rules effective
+                        <br><br>
+                        <strong>Decision:</strong> Operation DEFENDER complete
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personnel Assignments -->
+        <h2 style="color: #ffffff; margin: 40px 0 20px 0; font-size: 18px;">👥 Key Personnel & MDMP Roles</h2>
+        <div class="personnel-grid">
+            <div class="personnel-card">
+                <div class="personnel-role">Mission Commander</div>
+                <div class="personnel-name">LTC Jackson</div>
+                <div class="personnel-responsibility">
+                    🎯 Battalion Commander<br>
+                    ✓ Final approval authority (GATE 1)<br>
+                    ✓ MDMP decisions & escalations<br>
+                    ✓ Risk acceptance authority<br>
+                    ✓ Daily briefings from MAJ Manbear
+                </div>
+            </div>
+
+            <div class="personnel-card">
+                <div class="personnel-role">Mission OIC</div>
+                <div class="personnel-name">MAJ Manbear</div>
+                <div class="personnel-responsibility">
+                    🎯 Tactical Execution Lead<br>
+                    ✓ Daily MDMP decisions<br>
+                    ✓ Phase authorization<br>
+                    ✓ SITREP preparation<br>
+                    ✓ ARCYBER coordination
+                </div>
+            </div>
+
+            <div class="personnel-card">
+                <div class="personnel-role">Planning Lead</div>
+                <div class="personnel-name">S-3 Operations</div>
+                <div class="personnel-responsibility">
+                    🎯 MDMP Process Owner<br>
+                    ✓ COA development & analysis<br>
+                    ✓ Synchronization planning<br>
+                    ✓ Decision brief preparation<br>
+                    ✓ Orders production coordination
+                </div>
+            </div>
+
+            <div class="personnel-card">
+                <div class="personnel-role">Intelligence Lead</div>
+                <div class="personnel-name">S-2 Analyst</div>
+                <div class="personnel-responsibility">
+                    🎯 Mission Analysis Lead<br>
+                    ✓ Threat COA development<br>
+                    ✓ IPB cyberspace terrain<br>
+                    ✓ PIR/RFI tracking<br>
+                    ✓ Wargame analysis
+                </div>
+            </div>
+
+            <div class="personnel-card">
+                <div class="personnel-role">Host Forensics Lead</div>
+                <div class="personnel-name">MAJ Lounsbury (CPT 173)</div>
+                <div class="personnel-responsibility">
+                    🎯 Tactical Execution Lead<br>
+                    ✓ POAM-001 execution<br>
+                    ✓ POAM-002 execution<br>
+                    ✓ Phase coordination<br>
+                    ✓ Technical recommendations
+                </div>
+            </div>
+
+            <div class="personnel-card">
+                <div class="personnel-role">Malware Analysis Lead</div>
+                <div class="personnel-name">MAJ Othergal (CPT 174)</div>
+                <div class="personnel-responsibility">
+                    🎯 Technical Support Lead<br>
+                    ✓ Malware analysis coordination<br>
+                    ✓ Detection rule development<br>
+                    ✓ Technical wargaming input<br>
+                    ✓ POAM-001 support
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid rgba(100, 150, 200, 0.3); border-radius: 12px; padding: 25px; margin-top: 40px; margin-bottom: 40px;">
+            <h3 style="color: #00d4ff; margin-bottom: 20px; font-size: 16px;">📊 MDMP Planning Summary</h3>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div style="background: rgba(100, 150, 200, 0.05); padding: 15px; border-radius: 8px; border-left: 3px solid #00d4ff;">
+                    <div style="color: #94a3b8; font-size: 11px; margin-bottom: 8px;">MDMP PRODUCTS CREATED</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #00d4ff;">32+</div>
+                    <div style="color: #cbd5e1; font-size: 11px; margin-top: 6px;">
+                        ✓ Running estimates<br>
+                        ✓ Intelligence products<br>
+                        ✓ COA analysis<br>
+                        ✓ Decision materials
+                    </div>
+                </div>
+
+                <div style="background: rgba(100, 150, 200, 0.05); padding: 15px; border-radius: 8px; border-left: 3px solid #00d4ff;">
+                    <div style="color: #94a3b8; font-size: 11px; margin-bottom: 8px;">MDMP PROCESS TIME</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #00d4ff;">4 days</div>
+                    <div style="color: #cbd5e1; font-size: 11px; margin-top: 6px;">
+                        2026-02-17 to 2026-02-23<br>
+                        Compressed for rapid response<br>
+                        Ready for execution
+                    </div>
+                </div>
+
+                <div style="background: rgba(100, 150, 200, 0.05); padding: 15px; border-radius: 8px; border-left: 3px solid #00d4ff;">
+                    <div style="color: #94a3b8; font-size: 11px; margin-bottom: 8px;">COAS ANALYZED</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #00d4ff;">3</div>
+                    <div style="color: #cbd5e1; font-size: 11px; margin-top: 6px;">
+                        COA 1: 485/100<br>
+                        COA 2: 575/100 ⭐<br>
+                        COA 3: 500/100
+                    </div>
+                </div>
+
+                <div style="background: rgba(100, 150, 200, 0.05); padding: 15px; border-radius: 8px; border-left: 3px solid #00d4ff;">
+                    <div style="color: #94a3b8; font-size: 11px; margin-bottom: 8px;">RISK ASSESSMENT</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #f59e0b;">MEDIUM</div>
+                    <div style="color: #cbd5e1; font-size: 11px; margin-top: 6px;">
+                        ✓ Acceptable residual risk<br>
+                        ✓ Mitigation strategies ready<br>
+                        ✓ Escalation options planned
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-buttons">
+            <a href="dashboard.html" class="nav-button">← Back to Operations Dashboard</a>
+            <a href="#" class="nav-button" onclick="window.print(); return false;">🖨️ Print MDMP Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        function showStepDetails(step) {
+            console.log('MDMP Step ' + step + ' details clicked');
+            // Can be expanded to show detailed modal for each step
+        }
+
+        // Page initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('MDMP Dashboard initialized');
+        });
+    </script>
+</body>
+</html>
