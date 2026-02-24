@@ -26,35 +26,60 @@ Each role is **doctrinally grounded** (ADP 5-0, FM 3-12, JP 3-12) and designed t
 
 ---
 
+## What's New (v3.0)
+
+### ✨ Comprehensive Documentation
+- **[WHAT_IS_CYBERPLANNER.md](./WHAT_IS_CYBERPLANNER.md)** — Executive summary (read this first!)
+- **[PROJECT_GUIDE.md](./PROJECT_GUIDE.md)** — Complete architecture and features
+- **[CONSOLIDATION_PLAN.md](./CONSOLIDATION_PLAN.md)** — Improvement roadmap
+- **[DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)** — Master navigation guide
+
+### 🎯 Two Interactive Dashboards
+- **MDMP Dashboard** (`http://localhost:3000/mdmp-dashboard.html`) — 7-step planning visualization + export annexes
+- **Operations Dashboard** (`http://localhost:3000/`) — Real-time incident & POAM tracking
+
+### 📄 AR 25-50 Word Export
+- Export annexes as professionally formatted Word documents
+- Military compliance (1" margins, UNCLASSIFIED // FOUO marking)
+- Ready for HQ submission
+
+---
+
 ## Quick Start
 
-### 1. Installation
-
-Clone this repository into your project or team workspace:
+### Option 1: Start with AI Planning (Claude Code)
 
 ```bash
-git clone https://github.com/your-org/cyberopsplanner.git
-cd cyberopsplanner
-```
+# 1. Copy CLAUDE.md to project root (auto-loaded)
+# 2. Start Claude Code
+claude code .
 
-### 2. Claude Code Integration
-
-If using **Claude Code CLI**:
-
-1. **Copy `CLAUDE.md`** to your project root (Claude Code will load it automatically)
-2. **Copy the `.yaml` role files** to your workspace
-3. Open Claude Code in this directory
-4. Start working — the **Cyber Operations Planner** role loads by default
-
-For **Claude.ai web interface**: Copy relevant system prompts from the YAML files into your conversation context.
-
-### 3. Start Planning
-
-```
+# 3. Request what you need
 "Give me a cyber running estimate"
-"I'm at Step 2 of MDMP — what cyber products do I need?"
-"Switch to host analyst mode and analyze this endpoint"
+"Switch to host analyst mode"
+"I'm at Step 2 of MDMP — what do I need?"
 ```
+
+### Option 2: Use Interactive Dashboards
+
+```bash
+# 1. Install
+npm install
+
+# 2. Start server
+node server.js
+
+# 3. Open browser
+# MDMP Planning: http://localhost:3000/mdmp-dashboard.html
+# Operations Tracking: http://localhost:3000/
+
+# 4. Export annexes
+# Click "Export Annex M" or "Export Annex A" on MDMP dashboard
+```
+
+### Option 3: Both (Full System)
+
+Run dashboards + Claude Code simultaneously for complete system.
 
 ---
 
@@ -135,7 +160,9 @@ Use aliases for brevity:
 
 ## Features
 
-### Cyber Operations Planner
+### 🤖 Three AI Roles
+
+**Cyber Operations Planner**
 - Cyber running estimates and staff estimates
 - Cyber annex/appendix drafting (OPORD, CONOP, etc.)
 - Cyberspace terrain/IPB analysis
@@ -144,7 +171,7 @@ Use aliases for brevity:
 - Risk assessment and decision brief inputs
 - PIR/RFI tracking and collection planning
 
-### 17C Host Analyst
+**17C Host Analyst**
 - Endpoint artifact analysis and recognition
 - Forensic timeline development
 - Baseline deviation assessment
@@ -152,13 +179,42 @@ Use aliases for brevity:
 - Incident response triage and support
 - Host-level evidence documentation
 
-### 17C Network Analyst
+**17C Network Analyst**
 - Network traffic pattern analysis
 - Protocol behavior and anomaly detection
 - Beaconing and C2 channel identification
 - Lateral movement path assessment
 - Network architecture risk analysis
 - Detection logic recommendations
+
+### 📊 MDMP Planning Dashboard
+- 7-step Military Decision-Making Process visualization
+- 32+ planning products organized by step
+- 6 critical decision gates with timing/authority
+- Real-time progress tracking
+- **Export Annexes** — Generate AR 25-50 compliant Word documents
+
+### 🎯 Operations Dashboard
+- Real-time incident tracking (severity-coded)
+- POAM (Plans of Actions and Milestones) status
+- Personnel roster display
+- Threat intelligence (malware, actors, COAs)
+- Investigation timeline tracking
+- Multi-tab interface (Overview, Operations, POAMs, Incidents, Intelligence, Timeline)
+
+### 📄 Word Document Export
+- AR 25-50 military compliance (margins, fonts, formatting)
+- UNCLASSIFIED // FOUO classification marking
+- Annex M (Cyber Operations) and Annex A (Task Organization)
+- Date-stamped filenames
+- Ready for HQ submission
+
+### 📚 Doctrine Library
+- 15+ authoritative doctrinal references (ADP, FM, JP, ATP)
+- MITRE ATT&CK framework
+- NICE Workforce framework
+- MDMP step-to-role mapping
+- Competency framework
 
 ---
 
@@ -200,13 +256,31 @@ See **CLAUDE.md** for full doctrinal references.
 
 ---
 
-## Reference Materials
+## Comprehensive Documentation (v3.0)
 
-- **ROLES.md** — Complete role switching guide with examples
-- **competency-matrix.md** — Cross-role competency comparison
-- **mdmp-role-mapping.md** — How roles support each MDMP step
-- **task-role-map.md** — Role assignments by task type
-- **nice-alignment.md** — Alignment with NICE Framework for cyber workforce
+### 📖 Start Here — Four Essential Guides
+
+| Document | Purpose | Audience | Read Time |
+|----------|---------|----------|-----------|
+| **[WHAT_IS_CYBERPLANNER.md](./WHAT_IS_CYBERPLANNER.md)** | Complete system overview | Everyone | 15 min |
+| **[PROJECT_GUIDE.md](./PROJECT_GUIDE.md)** | Architecture & all features | Technical, Planners | 45 min |
+| **[DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)** | Master navigation index | Everyone | 5 min |
+| **[CONSOLIDATION_PLAN.md](./CONSOLIDATION_PLAN.md)** | Improvement roadmap | Managers, Developers | 25 min |
+
+### 🎯 Using the System
+
+- **[DASHBOARD_README.md](./DASHBOARD_README.md)** — Operations dashboard guide
+- **[EXPORT_ANNEXES_README.md](./EXPORT_ANNEXES_README.md)** — Word export documentation
+- **[QUICK_START_EXPORT.txt](./QUICK_START_EXPORT.txt)** — Visual quick start guide
+
+### 📚 Reference Materials
+
+- **[docs/roles/ROLES.md](./docs/roles/ROLES.md)** — Complete role switching guide with examples
+- **[docs/competency/competency-matrix.md](./docs/competency/competency-matrix.md)** — Cross-role competency comparison
+- **[docs/roles/mdmp-role-mapping.md](./docs/roles/mdmp-role-mapping.md)** — How roles support each MDMP step
+- **[docs/roles/task-role-map.md](./docs/roles/task-role-map.md)** — Role assignments by task type
+- **[docs/competency/nice-alignment.md](./docs/competency/nice-alignment.md)** — NICE Framework alignment
+- **[docs/POAMs/README.md](./docs/POAMs/README.md)** — Plan of Actions and Milestones system
 
 ---
 
@@ -287,11 +361,27 @@ See **CLAUDE.md** for full doctrinal references.
 
 ## Roadmap
 
+**v3.0 Complete (Current):**
+- ✅ MDMP Planning Dashboard (7-step visualization)
+- ✅ Operations Dashboard (real-time tracking)
+- ✅ AR 25-50 Word document export
+- ✅ Comprehensive documentation (81 files, 19,500+ lines)
+- ✅ Consolidation plan for improvements
+
+**v3.1 (Next):**
+- [ ] Execute consolidation plan (90 min cleanup)
+- [ ] Add more supported annexes (B, C, L)
+- [ ] Batch export (ZIP archive)
+- [ ] Custom letterhead/signatures
+
+**Future Roadmap:**
 - [ ] Support for joint cyber operations (CCMD perspective)
 - [ ] Expanded targeting support (HP/HVT integration)
 - [ ] Information operations integration guides
-- [ ] Training scenario packages
-- [ ] Ansible/infrastructure automation role (future)
+- [ ] WebSocket real-time updates
+- [ ] Database backend (replace embedded data)
+- [ ] Mobile app version
+- [ ] SIEM/EDR platform integration
 
 ---
 
@@ -329,13 +419,43 @@ When using CyberOpsPlanner:
 
 ## Support & Questions
 
-- **Usage questions:** Refer to ROLES.md and individual role documentation
+**Documentation:**
+- **Getting started:** Read [WHAT_IS_CYBERPLANNER.md](./WHAT_IS_CYBERPLANNER.md) (15 min)
+- **Find anything:** Use [DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)
+- **Usage questions:** Refer to role documentation in [docs/roles/](./docs/roles/)
 - **Doctrine alignment:** See CLAUDE.md doctrinal knowledge base
-- **Integration support:** Check your organization's AI/Claude Code governance
+- **Dashboard help:** See [DASHBOARD_README.md](./DASHBOARD_README.md)
+
+**Integration support:**
+- Check your organization's AI/Claude Code governance
+- Review [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) for integration points
 
 ---
 
 ## Changelog
+
+### v3.0 (Current - Comprehensive Release)
+**Major additions:**
+- ✅ MDMP Planning Dashboard — 7-step planning visualization with export
+- ✅ Operations Dashboard — Real-time incident and POAM tracking
+- ✅ Word Document Export — AR 25-50 compliant annexes
+- ✅ Comprehensive Documentation — 5 major guides, 81 files, 19,500+ lines
+- ✅ Consolidation Plan — Roadmap for improvements
+- ✅ Enhanced Server — REST API for document generation
+- ✅ Fixed deprecation warnings — WHATWG URL API
+
+**New files:**
+- WHAT_IS_CYBERPLANNER.md (executive summary)
+- PROJECT_GUIDE.md (comprehensive architecture)
+- CONSOLIDATION_PLAN.md (improvement roadmap)
+- DOCUMENTATION_INDEX.md (master navigation)
+- SUMMARY_OF_GUIDES_CREATED.md (this release summary)
+- mdmp-dashboard.html (interactive planning)
+- DASHBOARD_README.md, EXPORT_ANNEXES_README.md, etc.
+
+### v2.0 (Dashboard Release)
+- Operations Dashboard for real-time tracking
+- Enhanced server with export capabilities
 
 ### v1.0 (Initial Release)
 - Three core roles: Cyber Ops Planner, Host Analyst, Network Analyst
