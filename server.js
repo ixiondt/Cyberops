@@ -488,6 +488,36 @@ const server = http.createServer((req, res) => {
         return handleApiRequest(pathname, req, res);
     }
 
+    // Serve node_modules for offline CDN fallback
+    if (pathname.startsWith('/node_modules/')) {
+        const modulePath = path.join(__dirname, pathname);
+        const fullPath = modulePath;
+
+        fs.readFile(fullPath, (err, content) => {
+            if (err) {
+                res.writeHead(404, { 'Content-Type': 'text/plain' });
+                res.end('404 - Module not found\n');
+            } else {
+                const extname = String(path.extname(fullPath)).toLowerCase();
+                const mimeTypes = {
+                    '.js': 'application/javascript',
+                    '.css': 'text/css',
+                    '.json': 'application/json',
+                    '.map': 'application/json'
+                };
+                const contentType = mimeTypes[extname] || 'application/octet-stream';
+
+                res.writeHead(200, {
+                    'Content-Type': contentType,
+                    'Access-Control-Allow-Origin': '*',
+                    'Cache-Control': 'public, max-age=31536000'
+                });
+                res.end(content, 'utf-8');
+            }
+        });
+        return;
+    }
+
     // Default to dashboard
     let filePath = pathname === '/' ? '/dashboard.html' : pathname;
 

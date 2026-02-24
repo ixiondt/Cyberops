@@ -16,7 +16,8 @@
   "author": "CyberOpsPlanner",
   "license": "UNCLASSIFIED // FOUO",
   "dependencies": {
-    "docx": "^8.5.0"
+    "docx": "^8.5.0",
+    "vis-network": "^10.0.2"
   },
   "engines": {
     "node": ">=14.0.0"

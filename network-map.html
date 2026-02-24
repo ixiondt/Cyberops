@@ -4,8 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cyberspace Terrain Network Map - CyberPlanner</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.css" rel="stylesheet" />
+    <!-- Primary: Local copy from node_modules (works offline) -->
+    <script src="/node_modules/vis-network/dist/vis-network.min.js"></script>
+    <link href="/node_modules/vis-network/dist/vis-network.min.css" rel="stylesheet" />
+
+    <!-- Fallback 1: Cloudflare CDN (if local fails) -->
+    <script>
+        if (typeof vis === 'undefined') {
+            console.log('Local vis-network not found, trying Cloudflare CDN...');
+            var script1 = document.createElement('script');
+            script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.js';
+            script1.onload = function() { console.log('Cloudflare CDN loaded'); };
+            script1.onerror = function() { console.warn('Cloudflare CDN failed'); };
+            document.head.appendChild(script1);
+
+            var link1 = document.createElement('link');
+            link1.rel = 'stylesheet';
+            link1.href = 'https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.css';
+            document.head.appendChild(link1);
+        }
+    </script>
+
+    <!-- Fallback 2: jsDelivr CDN (if both above fail) -->
+    <script>
+        setTimeout(function() {
+            if (typeof vis === 'undefined') {
+                console.log('Cloudflare CDN not loaded, trying jsDelivr CDN...');
+                var script2 = document.createElement('script');
+                script2.src = 'https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js';
+                script2.onload = function() { console.log('jsDelivr CDN loaded'); };
+                script2.onerror = function() { console.error('All CDNs failed to load'); };
+                document.head.appendChild(script2);
+
+                var link2 = document.createElement('link');
+                link2.rel = 'stylesheet';
+                link2.href = 'https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.css';
+                document.head.appendChild(link2);
+            }
+        }, 1000);
+    </script>
     <style>
         * {
             margin: 0;
@@ -987,10 +1024,28 @@
             console.log('Page loaded, initializing...');
             console.log('vis library available:', typeof vis !== 'undefined');
 
-            // Ensure vis is available
+            // Ensure vis is available (with retry logic for CDN)
             if (typeof vis === 'undefined') {
                 console.error('ERROR: vis.js library failed to load from CDN');
-                alert('ERROR: Network visualization library (vis.js) failed to load.\n\nTry refreshing the page or check your internet connection.');
+
+                // Give fallback CDN a moment to load
+                setTimeout(function() {
+                    if (typeof vis === 'undefined') {
+                        console.error('FATAL: Both primary and fallback CDNs failed to load');
+                        const msg = 'ERROR: Network visualization library (vis.js) failed to load.\n\n' +
+                            'Solutions:\n' +
+                            '1. Check your internet connection\n' +
+                            '2. Try a different network/VPN\n' +
+                            '3. Refresh the page (Ctrl+R)\n' +
+                            '4. Use browser developer tools (F12) to view console errors\n\n' +
+                            'If you have data, you can still export it using the CSV import feature.';
+                        alert(msg);
+                    } else {
+                        console.log('Fallback CDN loaded successfully, re-initializing...');
+                        initializePageContext();
+                        initNetwork();
+                    }
+                }, 3000);
                 return;
             }
 
