@@ -1,0 +1,207 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                     AR 25-50 WORD EXPORT - QUICK START                    ║
+║                     CyberPlanner MDMP Dashboard v2.0                       ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+📋 STEP-BY-STEP USAGE
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 1: Install (First Time Only)
+─────────────────────────────────
+$ cd C:\Users\Avalon\Nextcloud\Projects\CyberPlanner
+$ npm install
+
+Expected output:
+  added 20 packages, and audited 21 packages in 2s
+  ✓ No vulnerabilities found
+
+
+STEP 2: Start Server
+────────────────────
+$ node server.js
+
+Expected output:
+  ╔════════════════════════════════════════════════════════════╗
+  ║     🛡️  CyberPlanner Operations Dashboard Server            ║
+  ╠════════════════════════════════════════════════════════════╣
+  ║ Server running at: http://localhost:3000                   ║
+  ║ Open your browser and navigate to:                        ║
+  ║   → http://localhost:3000                                  ║
+  ╚════════════════════════════════════════════════════════════╝
+
+
+STEP 3: Open MDMP Dashboard
+─────────────────────────────
+→ Open your browser
+→ Navigate to: http://localhost:3000/mdmp-dashboard.html
+
+
+STEP 4: Find Export Section
+─────────────────────────────
+Scroll down to find section: "📄 Export Annexes (AR 25-50 Format)"
+
+
+STEP 5: Click Export Button
+─────────────────────────────
+Choose which annex to download:
+
+  [📋 Export Annex M]    → Cyber Operations Annex
+  [👥 Export Annex A]    → Task Organization Annex
+  [📦 Export All]        → Batch export (coming soon)
+
+
+STEP 6: Document Downloads
+────────────────────────────
+File automatically downloads with name:
+  • ANNEX-M_2026-02-24.docx
+  • ANNEX-A_2026-02-24.docx
+
+Status message shows: ✅ [Annex Title] downloaded successfully (AR 25-50 format)
+
+
+STEP 7: Open in Microsoft Word
+────────────────────────────────
+• File opens in Microsoft Word
+• Verify formatting meets military standards:
+  ✓ 1-inch margins on all sides
+  ✓ UNCLASSIFIED // FOUO markings
+  ✓ Professional military layout
+• Edit/customize as needed
+• Save and submit to higher HQ
+
+
+═══════════════════════════════════════════════════════════════════════════
+🔧 TROUBLESHOOTING QUICK FIXES
+═══════════════════════════════════════════════════════════════════════════
+
+Problem: "Word export not available. Run npm install."
+Solution:
+  $ npm install
+  $ node server.js
+
+Problem: "Port 3000 already in use"
+Solution:
+  $ PORT=3001 node server.js
+  Then visit: http://localhost:3001/mdmp-dashboard.html
+
+Problem: Export button doesn't respond
+Solution:
+  1. Open browser console (F12)
+  2. Check Network tab for API errors
+  3. Verify server is running
+  4. Check server console for error messages
+
+Problem: Downloaded file won't open
+Solution:
+  1. Try re-downloading
+  2. Check server console for errors
+  3. Verify annex file exists in operation folder
+  4. Restart server: node server.js
+
+
+═══════════════════════════════════════════════════════════════════════════
+📊 WHAT'S INCLUDED
+═══════════════════════════════════════════════════════════════════════════
+
+✅ Export Annex M (Cyber Operations Annex)
+   - OPORD 26-02 cyber operations guidance
+   - 3-phase execution plan
+   - Task organization and roles
+   - Command & signal procedures
+
+✅ Export Annex A (Task Organization)
+   - Personnel roster
+   - Role assignments
+   - Organizational chart
+   - Personnel responsibilities
+
+✅ AR 25-50 Compliance
+   - 1" margins on all sides
+   - UNCLASSIFIED // FOUO classification
+   - Professional military formatting
+   - Generated timestamp
+   - Ready for HQ submission
+
+
+═══════════════════════════════════════════════════════════════════════════
+🎯 TYPICAL WORKFLOW
+═══════════════════════════════════════════════════════════════════════════
+
+Morning Briefing Preparation:
+┌─────────────────────────────────────────────────────┐
+│ 1. Start server: node server.js                      │
+│ 2. Open MDMP dashboard: http://localhost:3000/mdmp   │
+│ 3. Click "Export Annex M" for cyber operations info  │
+│ 4. Open ANNEX-M_*.docx in Microsoft Word            │
+│ 5. Add morning notes/updates                         │
+│ 6. Print and distribute to commanders               │
+└─────────────────────────────────────────────────────┘
+
+Situation Report (SITREP) Preparation:
+┌─────────────────────────────────────────────────────┐
+│ 1. Server already running                            │
+│ 2. Export "Annex A" for personnel status            │
+│ 3. Add current status updates to .docx              │
+│ 4. Attach to email for distribution                 │
+└─────────────────────────────────────────────────────┘
+
+Higher HQ Submission:
+┌─────────────────────────────────────────────────────┐
+│ 1. Export both Annex M and Annex A                  │
+│ 2. Verify AR 25-50 compliance (margins, fonts)      │
+│ 3. Add official signatures/approvals                │
+│ 4. Submit as .docx to higher HQ                     │
+└─────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════
+💡 TIPS & TRICKS
+═══════════════════════════════════════════════════════════════════════════
+
+✓ Export multiple times: Each download is fresh from source
+✓ Keep server running: Faster access to export multiple annexes
+✓ Customize in Word: Open .docx and edit freely before submission
+✓ Date stamped files: Each download includes date (YYYY-MM-DD)
+✓ FOUO handling: Ensure document stays within appropriate channels
+✓ Backup originals: Keep markdown sources and .docx exports together
+
+
+═══════════════════════════════════════════════════════════════════════════
+📞 NEED HELP?
+═══════════════════════════════════════════════════════════════════════════
+
+Quick Start:        This file (QUICK_START_EXPORT.txt)
+Full Documentation: EXPORT_ANNEXES_README.md
+Implementation:     IMPLEMENTATION_SUMMARY.md
+Project Context:    CLAUDE.md
+
+
+═══════════════════════════════════════════════════════════════════════════
+🎓 STANDARDS COMPLIANCE
+═══════════════════════════════════════════════════════════════════════════
+
+Military Regulations:
+  • AR 25-50 (Official Army Correspondence)
+  • ADP 5-0 (Military Decision-Making Process)
+  • FM 3-12 (Cyberspace Operations)
+
+Classification:
+  • UNCLASSIFIED // FOR OFFICIAL USE ONLY
+  • Proper marking on all exported documents
+  • Suitable for sharing within appropriate channels
+
+
+═══════════════════════════════════════════════════════════════════════════
+✅ SYSTEM READY FOR USE
+═══════════════════════════════════════════════════════════════════════════
+
+Next Steps:
+  1. Run: npm install
+  2. Run: node server.js
+  3. Visit: http://localhost:3000/mdmp-dashboard.html
+  4. Export annexes and begin using!
+
+Good luck with your operations planning!
+
+Generated: 2026-02-24
+Classification: UNCLASSIFIED // FOUO
