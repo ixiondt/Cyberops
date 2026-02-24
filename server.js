@@ -1399,6 +1399,13 @@ const server = http.createServer((req, res) => {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
     const pathname = urlObj.pathname;
 
+    // Handle favicon requests (no 404 spam)
+    if (pathname === '/favicon.ico') {
+        res.writeHead(204);
+        res.end();
+        return;
+    }
+
     // Handle API requests
     if (pathname.startsWith('/api/')) {
         return handleApiRequest(pathname, req, res);
