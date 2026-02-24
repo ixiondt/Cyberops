@@ -6,7 +6,7 @@
     <title>Cyberspace Terrain Network Map - CyberPlanner</title>
     <!-- Primary: Local copy from node_modules (works offline) -->
     <script src="/node_modules/vis-network/dist/vis-network.min.js"></script>
-    <link href="/node_modules/vis-network/dist/vis-network.min.css" rel="stylesheet" />
+    <link href="/node_modules/vis-network/dist/dist/vis-network.min.css" rel="stylesheet" />
 
     <!-- Fallback 1: Cloudflare CDN (if local fails) -->
     <script>
@@ -656,6 +656,8 @@
                     if (!data.layers || !data.layers.physical) {
                         throw new Error('Invalid topology structure: missing layers or physical layer');
                     }
+                    // Store globally for layer switching
+                    window.currentNetworkData = data;
                     displayLayer(data, 'physical');
                     updateStats(data.layers.physical);
                 })
@@ -715,6 +717,8 @@
                 }
             };
 
+            // Store globally for layer switching
+            window.currentNetworkData = sampleData;
             displayLayer(sampleData, 'physical');
             updateStats(sampleData.layers.physical);
         }
@@ -737,11 +741,13 @@
                 return;
             }
 
+            console.log('Displaying layer:', layer);
             const layerData = data.layers[layer];
             networkData.nodes.clear();
             networkData.edges.clear();
 
             // Add nodes with styling
+            let nodeCount = 0;
             layerData.nodes.forEach(node => {
                 const color = getCriticalityColor(node.criticality);
                 networkData.nodes.add({
@@ -753,9 +759,11 @@
                     margin: 15,
                     borderWidth: 3
                 });
+                nodeCount++;
             });
 
             // Add edges
+            let edgeCount = 0;
             layerData.edges.forEach(edge => {
                 networkData.edges.add({
                     from: edge.from,
@@ -763,16 +771,32 @@
                     label: edge.label || '',
                     font: { size: 10 }
                 });
+                edgeCount++;
             });
 
-            network.fit();
+            console.log('Added nodes:', nodeCount, 'edges:', edgeCount);
+
+            // Ensure network is ready before fitting
+            if (network && network.canvas) {
+                console.log('Network canvas ready, fitting view...');
+                network.fit({ animation: { duration: 500 } });
+                console.log('Network fit complete');
+            } else {
+                console.warn('Network not ready for fit');
+            }
+
             currentLayer = layer;
+            console.log('Layer display complete');
         }
 
         function switchLayer(layer) {
+            console.log('Switching to layer:', layer);
+
             // Update button states
             document.querySelectorAll('.layer-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
 
             // Update header
             const layerNames = {
@@ -782,9 +806,14 @@
             };
             document.getElementById('layerInfo').textContent = `Layer: ${layerNames[layer]}`;
 
-            // For now, reload sample data for the layer
-            // In production, this would use saved operation data
-            loadSampleData();
+            // Store current data and redisplay with new layer
+            // This prevents race conditions during layer switching
+            if (window.currentNetworkData) {
+                displayLayer(window.currentNetworkData, layer);
+                console.log('Layer switched to:', layer);
+            } else {
+                console.warn('No network data available for layer switch');
+            }
         }
 
         function getCriticalityColor(criticality) {
