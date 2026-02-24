@@ -603,14 +603,22 @@
             const operationId = new URLSearchParams(window.location.search).get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
 
             fetch(`/api/network-map/data?operation=${encodeURIComponent(operationId)}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    console.log('Loaded network topology from server');
+                    console.log('Loaded network topology from server for operation:', operationId);
+                    if (!data.layers || !data.layers.physical) {
+                        throw new Error('Invalid topology structure: missing layers or physical layer');
+                    }
                     displayLayer(data, 'physical');
                     updateStats(data.layers.physical);
                 })
                 .catch(err => {
-                    console.log('Using sample data:', err.message);
+                    console.log('Could not load from server, using sample data:', err.message);
                     loadSampleNetworkData();
                 });
         }
@@ -819,15 +827,34 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     try {
-                        const data = JSON.parse(e.target.result);
+                        const fileContent = e.target.result;
+                        console.log('File read successfully, size:', fileContent.length);
+
+                        // Validate JSON syntax
+                        const data = JSON.parse(fileContent);
+                        console.log('JSON parsed successfully');
+
+                        // Validate structure
+                        if (!data.layers || !data.layers[currentLayer]) {
+                            throw new Error(`Layer "${currentLayer}" not found in topology data`);
+                        }
+
                         displayLayer(data, currentLayer);
                         updateStats(data.layers[currentLayer]);
                         closeModal();
+                        console.log('Layer displayed successfully');
                     } catch (err) {
-                        alert('Error parsing JSON: ' + err.message);
+                        console.error('Parse error:', err);
+                        alert('Error parsing JSON:\n\n' + err.message + '\n\nCheck browser console (F12) for details.');
                     }
                 };
+                reader.onerror = function(err) {
+                    console.error('File read error:', err);
+                    alert('Error reading file: ' + err.message);
+                };
                 reader.readAsText(jsonFile);
+            } else {
+                alert('Please select a file first');
             }
         }
 
@@ -837,63 +864,85 @@
 
         function loadCSV() {
             const csvFile = document.getElementById('csvFile').files[0];
-            if (csvFile) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const lines = e.target.result.split('\n');
-                        const nodes = [];
-                        const edges = [];
-
-                        // Parse CSV header: IP,Hostname,OS,Role,Criticality,Subnet
-                        for (let i = 1; i < lines.length; i++) {
-                            if (lines[i].trim() === '') continue;
-                            const parts = lines[i].split(',').map(p => p.trim());
-                            if (parts.length >= 5) {
-                                nodes.push({
-                                    id: `host-${i}`,
-                                    label: `${parts[1] || 'Unknown'}\n${parts[0]}`,
-                                    type: 'host',
-                                    ip: parts[0],
-                                    hostname: parts[1] || 'Unknown',
-                                    os: parts[2] || 'Unknown',
-                                    role: parts[3] || 'Workstation',
-                                    criticality: parts[4] || 'MEDIUM',
-                                    subnet: parts[5] || 'UNKNOWN'
-                                });
-                            }
-                        }
-
-                        if (nodes.length === 0) {
-                            alert('No valid hosts found in CSV');
-                            return;
-                        }
-
-                        // Update network with imported hosts
-                        networkData.nodes.clear();
-                        networkData.edges.clear();
-
-                        nodes.forEach(node => {
-                            const color = getCriticalityColor(node.criticality);
-                            networkData.nodes.add({
-                                id: node.id,
-                                label: node.label,
-                                title: `${node.hostname} (${node.ip})\nOS: ${node.os}\nRole: ${node.role}\nCriticality: ${node.criticality}`,
-                                color: { background: color.bg, border: color.border },
-                                font: { size: 11 },
-                                margin: 10
-                            });
-                        });
-
-                        network.fit({ animation: { duration: 1000 } });
-                        updateStats({ nodes: nodes, edges: [] });
-                        alert(`Successfully imported ${nodes.length} hosts from CSV`);
-                    } catch (err) {
-                        alert('Error parsing CSV: ' + err.message);
-                    }
-                };
-                reader.readAsText(csvFile);
+            if (!csvFile) {
+                alert('Please select a CSV file first');
+                return;
             }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const lines = e.target.result.split('\n');
+                    const nodes = [];
+
+                    if (lines.length < 2) {
+                        throw new Error('CSV file must have at least header + 1 data row');
+                    }
+
+                    // Parse CSV: IP,Hostname,OS,Role,Criticality,Subnet
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (line === '') continue;
+
+                        const parts = line.split(',').map(p => p.trim());
+                        if (parts.length < 5) {
+                            console.warn(`Row ${i + 1}: Skipping - insufficient columns`);
+                            continue;
+                        }
+
+                        const [ip, hostname, os, role, criticality, subnet] = parts;
+                        if (!ip || !hostname) {
+                            console.warn(`Row ${i + 1}: Skipping - missing IP or hostname`);
+                            continue;
+                        }
+
+                        nodes.push({
+                            id: `host-${i}`,
+                            label: `${hostname}`,
+                            type: 'host',
+                            ip: ip,
+                            hostname: hostname,
+                            os: os || 'Unknown',
+                            role: role || 'Workstation',
+                            criticality: criticality || 'MEDIUM',
+                            subnet: subnet || 'UNKNOWN'
+                        });
+                    }
+
+                    if (nodes.length === 0) {
+                        throw new Error('No valid host entries found in CSV. Check format: IP,Hostname,OS,Role,Criticality,Subnet');
+                    }
+
+                    // Update network with imported hosts
+                    networkData.nodes.clear();
+                    networkData.edges.clear();
+
+                    nodes.forEach(node => {
+                        const color = getCriticalityColor(node.criticality);
+                        networkData.nodes.add({
+                            id: node.id,
+                            label: node.label,
+                            title: `IP: ${node.ip}\nHostname: ${node.hostname}\nOS: ${node.os}\nRole: ${node.role}\nCriticality: ${node.criticality}\nSubnet: ${node.subnet}`,
+                            color: { background: color.bg, border: color.border },
+                            font: { size: 11 },
+                            margin: 10
+                        });
+                    });
+
+                    network.fit({ animation: { duration: 1000 } });
+                    updateStats({ nodes: nodes, edges: [] });
+                    alert(`Successfully imported ${nodes.length} hosts from CSV`);
+                    console.log('CSV import complete:', nodes.length, 'hosts');
+                } catch (err) {
+                    console.error('CSV parse error:', err);
+                    alert('Error parsing CSV:\n\n' + err.message);
+                }
+            };
+            reader.onerror = function(err) {
+                console.error('File read error:', err);
+                alert('Error reading file: ' + err.message);
+            };
+            reader.readAsText(csvFile);
         }
 
         function exportImage() {
