@@ -1,0 +1,24 @@
+{
+  "name": "cyberplanner-dashboard",
+  "version": "2.0.0",
+  "description": "CyberPlanner Operations Dashboard with Word Export",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "cyber",
+    "operations",
+    "military",
+    "mdmp"
+  ],
+  "author": "CyberOpsPlanner",
+  "license": "UNCLASSIFIED // FOUO",
+  "dependencies": {
+    "docx": "^8.5.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

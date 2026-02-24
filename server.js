@@ -3,9 +3,10 @@
 /**
  * CyberPlanner Dashboard Server
  *
- * Simple HTTP server to serve the operations dashboard
+ * HTTP server with API endpoint for AR 25-50 compliant Word document export
  *
  * Usage:
+ *   npm install (first time)
  *   node server.js
  *   then open http://localhost:3000 in your browser
  */
@@ -13,14 +14,234 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const url = require('url');
+const querystring = require('querystring');
+
+// Optional: Try to load docx library for export functionality
+let docx = null;
+try {
+  docx = require('docx');
+} catch (err) {
+  console.warn('⚠️  docx library not installed. Run "npm install" for Word export functionality.');
+}
 
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
 
+// AR 25-50 compliance helper function
+function createAr25_50Document(annexTitle, annexFile, mdContent) {
+    if (!docx) {
+        return null;
+    }
+
+    // Parse markdown content to plain text with structure
+    const lines = mdContent.split('\n');
+    const paragraphs = [];
+
+    // Add header with classification
+    paragraphs.push(
+        new docx.Paragraph({
+            text: 'UNCLASSIFIED // FOUO',
+            alignment: docx.AlignmentType.CENTER,
+            bold: true,
+            size: 22 // 11pt
+        })
+    );
+
+    // Add blank line
+    paragraphs.push(new docx.Paragraph({ text: '' }));
+
+    // Add document header
+    paragraphs.push(
+        new docx.Paragraph({
+            text: annexTitle,
+            alignment: docx.AlignmentType.CENTER,
+            bold: true,
+            size: 28 // 14pt
+        })
+    );
+
+    // Add blank line
+    paragraphs.push(new docx.Paragraph({ text: '' }));
+
+    // Parse markdown content
+    let inCodeBlock = false;
+    let isHeading = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        if (line.startsWith('```')) {
+            inCodeBlock = !inCodeBlock;
+            continue;
+        }
+
+        if (inCodeBlock) {
+            paragraphs.push(
+                new docx.Paragraph({
+                    text: line,
+                    size: 20 // 10pt for code
+                })
+            );
+            continue;
+        }
+
+        // Handle headings
+        if (line.startsWith('# ')) {
+            paragraphs.push(
+                new docx.Paragraph({
+                    text: line.replace(/^#\s+/, ''),
+                    bold: true,
+                    size: 28, // 14pt
+                    spacing: { before: 240, after: 120 }
+                })
+            );
+        } else if (line.startsWith('## ')) {
+            paragraphs.push(
+                new docx.Paragraph({
+                    text: line.replace(/^##\s+/, ''),
+                    bold: true,
+                    size: 26, // 13pt
+                    spacing: { before: 200, after: 100 }
+                })
+            );
+        } else if (line.startsWith('### ')) {
+            paragraphs.push(
+                new docx.Paragraph({
+                    text: line.replace(/^###\s+/, ''),
+                    bold: true,
+                    size: 24, // 12pt
+                    spacing: { before: 160, after: 80 }
+                })
+            );
+        } else if (line.startsWith('- ')) {
+            // Bullet point
+            paragraphs.push(
+                new docx.Paragraph({
+                    text: line.replace(/^-\s+/, ''),
+                    bullet: { level: 0 },
+                    size: 22 // 11pt
+                })
+            );
+        } else if (line.startsWith('| ')) {
+            // Skip tables in this simple implementation
+            continue;
+        } else if (line.length > 0 && !line.startsWith('---')) {
+            // Regular paragraph
+            paragraphs.push(
+                new docx.Paragraph({
+                    text: line,
+                    size: 22 // 11pt
+                })
+            );
+        } else if (line.length === 0) {
+            // Blank line
+            paragraphs.push(new docx.Paragraph({ text: '' }));
+        }
+    }
+
+    // Add footer with classification and date
+    paragraphs.push(new docx.Paragraph({ text: '' }));
+    paragraphs.push(
+        new docx.Paragraph({
+            text: `UNCLASSIFIED // FOUO | Generated: ${new Date().toISOString()}`,
+            size: 18, // 9pt
+            alignment: docx.AlignmentType.CENTER
+        })
+    );
+
+    // Create document with AR 25-50 compliance (1" margins on all sides = 1440 twips)
+    const doc = new docx.Document({
+        sections: [{
+            properties: {
+                page: {
+                    margins: {
+                        top: 1440,    // 1 inch
+                        right: 1440,  // 1 inch
+                        bottom: 1440, // 1 inch
+                        left: 1440    // 1 inch
+                    }
+                }
+            },
+            children: paragraphs
+        }]
+    });
+
+    return doc;
+}
+
+// API endpoint handler
+async function handleApiRequest(pathname, req, res) {
+    if (pathname === '/api/export/annex') {
+        const queryData = url.parse(req.url, true).query;
+        const annexName = queryData.name || 'ANNEX-M';
+        const operationId = queryData.operation || 'OP-DEFENDER_DCO-RA_2026-02-23';
+
+        // Map annex names to file paths
+        const annexMap = {
+            'ANNEX-M': {
+                file: `operation/${operationId}/OPERATIONS/Cyber_Annex_Operational_Focus_2026-02-23.md`,
+                title: 'ANNEX M: CYBER OPERATIONS ANNEX'
+            },
+            'ANNEX-A': {
+                file: `operation/${operationId}/OPERATIONS/Task_Organization_Summary_2026-02-23.md`,
+                title: 'ANNEX A: TASK ORGANIZATION'
+            }
+        };
+
+        const annexInfo = annexMap[annexName];
+        if (!annexInfo) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Unknown annex: ${annexName}` }));
+            return;
+        }
+
+        const annexPath = path.join(__dirname, annexInfo.file);
+
+        try {
+            const mdContent = fs.readFileSync(annexPath, 'utf8');
+            const doc = createAr25_50Document(annexInfo.title, annexInfo.file, mdContent);
+
+            if (!doc) {
+                res.writeHead(503, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Word export not available. Run npm install.' }));
+                return;
+            }
+
+            // Generate buffer
+            const buffer = await docx.Packer.toBuffer(doc);
+
+            // Send as downloadable file
+            const filename = `${annexName}_${new Date().toISOString().split('T')[0]}.docx`;
+            res.writeHead(200, {
+                'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'Content-Disposition': `attachment; filename="${filename}"`,
+                'Content-Length': buffer.length
+            });
+            res.end(buffer);
+        } catch (err) {
+            console.error('Export error:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+    } else {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'API endpoint not found' }));
+    }
+}
+
 // Create server
 const server = http.createServer((req, res) => {
+    const parsedUrl = url.parse(req.url, true);
+    const pathname = parsedUrl.pathname;
+
+    // Handle API requests
+    if (pathname.startsWith('/api/')) {
+        return handleApiRequest(pathname, req, res);
+    }
+
     // Default to dashboard
-    let filePath = req.url === '/' ? '/dashboard.html' : req.url;
+    let filePath = pathname === '/' ? '/dashboard.html' : pathname;
 
     // Map URL to file path
     const fullPath = path.join(__dirname, filePath);
@@ -44,7 +265,9 @@ const server = http.createServer((req, res) => {
         '.ttf': 'application/font-ttf',
         '.eot': 'application/vnd.ms-fontobject',
         '.otf': 'application/font-otf',
-        '.wasm': 'application/wasm'
+        '.wasm': 'application/wasm',
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        '.md': 'text/markdown'
     };
 
     const contentType = mimeTypes[extname] || 'application/octet-stream';
@@ -79,7 +302,10 @@ const server = http.createServer((req, res) => {
                 res.end(`Server Error: ${err}`);
             }
         } else {
-            res.writeHead(200, { 'Content-Type': contentType });
+            res.writeHead(200, {
+                'Content-Type': contentType,
+                'Access-Control-Allow-Origin': '*'
+            });
             res.end(content, 'utf-8');
         }
     });

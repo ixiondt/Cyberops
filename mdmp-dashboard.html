@@ -594,6 +594,38 @@
             background: rgba(0, 212, 255, 0.5);
         }
 
+        /* Export Buttons */
+        .export-button {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .export-button:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .export-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .export-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         /* Navigation */
         .nav-buttons {
             display: flex;
@@ -1256,6 +1288,29 @@
             </div>
         </div>
 
+        <!-- Export Annexes Section -->
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 25px; margin-bottom: 40px;">
+            <h3 style="color: #10b981; margin-bottom: 20px; font-size: 16px;">📄 Export Annexes (AR 25-50 Format)</h3>
+            <p style="color: #cbd5e1; font-size: 12px; margin-bottom: 20px;">Download annexes as Microsoft Word documents with military doctrine compliance formatting.</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+                <button class="export-button" onclick="exportAnnex('ANNEX-M', 'Cyber Operations Annex')">
+                    📋 Export Annex M<br>
+                    <span style="font-size: 11px;">Cyber Operations</span>
+                </button>
+                <button class="export-button" onclick="exportAnnex('ANNEX-A', 'Task Organization')">
+                    👥 Export Annex A<br>
+                    <span style="font-size: 11px;">Task Organization</span>
+                </button>
+                <button class="export-button" onclick="exportAllAnnexes()">
+                    📦 Export All Annexes<br>
+                    <span style="font-size: 11px;">As ZIP archive</span>
+                </button>
+            </div>
+
+            <div id="export-status" style="color: #94a3b8; font-size: 11px; margin-top: 15px; display: none;"></div>
+        </div>
+
         <!-- Navigation -->
         <div class="nav-buttons">
             <a href="dashboard.html" class="nav-button">← Back to Operations Dashboard</a>
@@ -1269,9 +1324,57 @@
             // Can be expanded to show detailed modal for each step
         }
 
+        async function exportAnnex(annexName, annexTitle) {
+            const statusDiv = document.getElementById('export-status');
+            const button = event.target.closest('button');
+
+            try {
+                statusDiv.style.display = 'block';
+                statusDiv.innerHTML = `⏳ Generating ${annexTitle}...`;
+                button.disabled = true;
+
+                const response = await fetch(`/api/export/annex?name=${annexName}&operation=OP-DEFENDER_DCO-RA_2026-02-23`);
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Export failed');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${annexName}_${new Date().toISOString().split('T')[0]}.docx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                statusDiv.innerHTML = `✅ ${annexTitle} downloaded successfully (AR 25-50 format)`;
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                    button.disabled = false;
+                }, 3000);
+            } catch (err) {
+                statusDiv.innerHTML = `❌ Error: ${err.message}`;
+                button.disabled = false;
+                console.error('Export error:', err);
+            }
+        }
+
+        function exportAllAnnexes() {
+            const statusDiv = document.getElementById('export-status');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = `ℹ️ Individual annexes available above. ZIP archive export coming soon.`;
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 4000);
+        }
+
         // Page initialization
         document.addEventListener('DOMContentLoaded', function() {
             console.log('MDMP Dashboard initialized');
+            console.log('Word export functionality ready (docx library required)');
         });
     </script>
 </body>
