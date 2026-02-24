@@ -910,15 +910,37 @@
         }
 
         function updateStats(layerData) {
-            if (!layerData) {
-                document.getElementById('nodeCount').textContent = '0';
-                document.getElementById('edgeCount').textContent = '0';
-                document.getElementById('subnetCount').textContent = '0';
-                return;
+            // Count actual nodes and edges in the network visualization
+            let nodeCount = 0;
+            let edgeCount = 0;
+            let subnetCount = 0;
+
+            if (networkData && networkData.nodes) {
+                nodeCount = networkData.nodes.length;
+                if (networkData.edges) {
+                    edgeCount = networkData.edges.length;
+                }
+
+                // Count subnets by looking for subnet-type nodes
+                networkData.nodes.forEach(node => {
+                    if (node.type === 'subnet') {
+                        subnetCount++;
+                    }
+                });
             }
-            document.getElementById('nodeCount').textContent = layerData.nodes ? layerData.nodes.length : 0;
-            document.getElementById('edgeCount').textContent = layerData.edges ? layerData.edges.length : 0;
-            document.getElementById('subnetCount').textContent = layerData.nodes ? layerData.nodes.filter(n => n.type === 'subnet').length : 0;
+
+            // If no nodes in network but layerData provided, use layerData as fallback
+            if (nodeCount === 0 && layerData) {
+                nodeCount = layerData.nodes ? layerData.nodes.length : 0;
+                edgeCount = layerData.edges ? layerData.edges.length : 0;
+                subnetCount = layerData.nodes ? layerData.nodes.filter(n => n.type === 'subnet').length : 0;
+            }
+
+            document.getElementById('nodeCount').textContent = nodeCount;
+            document.getElementById('edgeCount').textContent = edgeCount;
+            document.getElementById('subnetCount').textContent = subnetCount;
+
+            console.log('Stats updated - Nodes:', nodeCount, 'Edges:', edgeCount, 'Subnets:', subnetCount);
         }
 
         function fitNetwork() {
