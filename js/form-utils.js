@@ -33,15 +33,33 @@ function closeModal(modalId) {
 function validatePOAMForm(data) {
     const errors = [];
 
-    if (!data.title || data.title.trim() === '') {
-        errors.push('POAM title is required');
+    // NIST SP 800-171 Required Fields
+    if (!data.weakness || data.weakness.trim() === '') {
+        errors.push('Weakness/Finding description is required');
     }
 
-    if (data.title && data.title.length > 200) {
-        errors.push('POAM title must be less than 200 characters');
+    if (!data.responsibleOrganization || data.responsibleOrganization.trim() === '') {
+        errors.push('Responsible Organization is required');
     }
 
-    const validStatuses = ['open', 'in-progress', 'complete'];
+    if (!data.nistControl || data.nistControl.trim() === '') {
+        errors.push('NIST 800-171 Control is required (e.g., SI-4)');
+    }
+
+    if (!data.scheduledCompletionDate) {
+        errors.push('Scheduled Completion Date is required');
+    }
+
+    if (!data.weaknessIdentification) {
+        errors.push('Weakness Identification method is required');
+    }
+
+    // Validate NIST Control format (e.g., SI-4, AC-2)
+    if (data.nistControl && !data.nistControl.match(/^[A-Z]{2,3}-\d{1,2}$/)) {
+        errors.push('NIST Control must be in format like SI-4, AC-2, or IA-2');
+    }
+
+    const validStatuses = ['ongoing', 'complete'];
     if (data.status && !validStatuses.includes(data.status)) {
         errors.push('Invalid status selected');
     }
@@ -49,6 +67,11 @@ function validatePOAMForm(data) {
     const validPriorities = ['critical', 'high', 'medium', 'low'];
     if (data.priority && !validPriorities.includes(data.priority)) {
         errors.push('Invalid priority selected');
+    }
+
+    const validIdentificationMethods = ['assessment', 'audit', 'incident', 'scan', 'threat-modeling', 'penetration-test', 'other'];
+    if (data.weaknessIdentification && !validIdentificationMethods.includes(data.weaknessIdentification)) {
+        errors.push('Invalid weakness identification method');
     }
 
     return errors;

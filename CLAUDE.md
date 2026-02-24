@@ -294,6 +294,61 @@ Claude automatically loads `CLAUDE.md` and the three role YAML definitions.
 
 ---
 
+## NIST SP 800-171 POA&M INTEGRATION
+
+**CyberOpsPlanner now integrates NIST SP 800-171 Plan of Action and Milestones (POA&M) standard.**
+
+### POA&M Fields (NIST Compliance Format)
+
+All POA&Ms created in the dashboard follow NIST SP 800-171 structure:
+
+**Required Fields:**
+- **Weakness/Finding** — Description of control requirement not met
+- **Responsible Organization** — Office responsible for remediation
+- **NIST 800-171 Control** — Control identifier (e.g., SI-4, AC-2, IA-2)
+- **Scheduled Completion Date** — Target remediation completion date
+- **Weakness Identification** — How weakness was discovered (Assessment, Audit, Incident, Scan, etc.)
+
+**Optional Fields:**
+- **Resource Estimate** — Funding status (Funded/Unfunded/Reallocation)
+- **Milestones with Interim Dates** — Progress checkpoints with target dates
+- **Status** — Ongoing or Complete
+- **Priority** — Critical/High/Medium/Low
+- **Changes to Milestones** — Documentation of original plan modifications
+
+### Using POA&M in Dashboard
+
+1. **Create POA&M** — Click "+ New POAM" in POAMs tab
+2. **Select NIST Control** — Use format like SI-4, AC-2, IA-2
+3. **Document Weakness** — Clear description of control gap
+4. **Set Completion Target** — Realistic date with interim milestones
+5. **Track Progress** — Update as remediation progresses
+6. **Export for Audit** — Generate compliance reports
+
+### POA&M Export & Reporting
+
+POA&Ms are stored in operation folders as markdown files matching CUI template:
+```
+operation/OP-[NAME]/POAMs/POAM-[ID]_[description].md
+```
+
+Can be exported to:
+- Word documents (NIST format)
+- Excel spreadsheets
+- CSV for CMMC tracking systems
+
+### NIST Control Quick Reference
+
+**Access Control (AC):** AC-2, AC-3, AC-4, AC-5, ...
+**Identification & Authentication (IA):** IA-2, IA-4, IA-5, ...
+**Audit & Accountability (AU):** AU-2, AU-3, AU-6, ...
+**System & Information Integrity (SI):** SI-3, SI-4, SI-7, ...
+**Configuration Management (CM):** CM-3, CM-5, CM-6, ...
+
+See **NIST-800-171-POAM-GUIDE.md** for complete reference.
+
+---
+
 ## OPERATION CONTEXT (FILL-IN TEMPLATE)
 
 > Keep this section current per mission. If blank, ask for the minimum required data.
