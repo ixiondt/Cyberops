@@ -67,7 +67,7 @@
       ]
     },
     "logical": {
-      "description": "Logical Layer",
+      "description": "Logical Layer with Hosts",
       "nodes": [
         {
           "id": "subnet-mgmt",
@@ -77,6 +77,20 @@
           "vlan": 100
         },
         {
+          "id": "mgmt-01",
+          "label": "admin-01\n10.0.0.10",
+          "type": "host",
+          "criticality": "CRITICAL",
+          "subnet": "subnet-mgmt"
+        },
+        {
+          "id": "mgmt-02",
+          "label": "admin-02\n10.0.0.11",
+          "type": "host",
+          "criticality": "CRITICAL",
+          "subnet": "subnet-mgmt"
+        },
+        {
           "id": "subnet-dmz",
           "label": "DMZ 10.1.0.0/24",
           "type": "subnet",
@@ -84,11 +98,53 @@
           "vlan": 200
         },
         {
+          "id": "dmz-web-01",
+          "label": "web-prod-01\n10.1.0.10",
+          "type": "host",
+          "criticality": "HIGH",
+          "subnet": "subnet-dmz"
+        },
+        {
+          "id": "dmz-web-02",
+          "label": "web-prod-02\n10.1.0.11",
+          "type": "host",
+          "criticality": "HIGH",
+          "subnet": "subnet-dmz"
+        },
+        {
           "id": "subnet-prod",
           "label": "Production 10.2.0.0/23",
           "type": "subnet",
           "criticality": "CRITICAL",
           "vlan": 300
+        },
+        {
+          "id": "prod-app-01",
+          "label": "app-01\n10.2.0.20",
+          "type": "host",
+          "criticality": "CRITICAL",
+          "subnet": "subnet-prod"
+        },
+        {
+          "id": "prod-app-02",
+          "label": "app-02\n10.2.0.21",
+          "type": "host",
+          "criticality": "CRITICAL",
+          "subnet": "subnet-prod"
+        },
+        {
+          "id": "prod-db-01",
+          "label": "db-primary\n10.2.1.10",
+          "type": "host",
+          "criticality": "CRITICAL",
+          "subnet": "subnet-prod"
+        },
+        {
+          "id": "prod-db-02",
+          "label": "db-secondary\n10.2.1.11",
+          "type": "host",
+          "criticality": "HIGH",
+          "subnet": "subnet-prod"
         },
         {
           "id": "fw-edge",
@@ -126,6 +182,16 @@
           "label": "external"
         },
         {
+          "from": "dmz-web-01",
+          "to": "subnet-dmz",
+          "label": "member"
+        },
+        {
+          "from": "dmz-web-02",
+          "to": "subnet-dmz",
+          "label": "member"
+        },
+        {
           "from": "subnet-dmz",
           "to": "router-core",
           "label": "transit"
@@ -141,9 +207,39 @@
           "label": "internal"
         },
         {
+          "from": "prod-app-01",
+          "to": "subnet-prod",
+          "label": "member"
+        },
+        {
+          "from": "prod-app-02",
+          "to": "subnet-prod",
+          "label": "member"
+        },
+        {
+          "from": "prod-db-01",
+          "to": "subnet-prod",
+          "label": "member"
+        },
+        {
+          "from": "prod-db-02",
+          "to": "subnet-prod",
+          "label": "member"
+        },
+        {
           "from": "router-core",
           "to": "subnet-mgmt",
           "label": "admin"
+        },
+        {
+          "from": "mgmt-01",
+          "to": "subnet-mgmt",
+          "label": "member"
+        },
+        {
+          "from": "mgmt-02",
+          "to": "subnet-mgmt",
+          "label": "member"
         },
         {
           "from": "ids-1",

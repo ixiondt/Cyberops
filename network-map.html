@@ -638,6 +638,11 @@
                 console.log('Canvas style:', network.canvas.style.width, 'x', network.canvas.style.height);
             }
 
+            // Test the data loading
+            network.on('stabilizationIterationDone', function() {
+                console.log('Network stabilization done');
+            });
+
             network.on('click', function(params) {
                 if (params.nodes.length > 0) {
                     showNodeDetails(params.nodes[0]);
@@ -818,6 +823,7 @@
 
         function switchLayer(layer) {
             console.log('Switching to layer:', layer);
+            console.log('currentNetworkData exists:', !!window.currentNetworkData);
 
             // Update button states
             document.querySelectorAll('.layer-btn').forEach(btn => btn.classList.remove('active'));
@@ -836,10 +842,14 @@
             // Store current data and redisplay with new layer
             // This prevents race conditions during layer switching
             if (window.currentNetworkData) {
+                console.log('Displaying layer data...');
                 displayLayer(window.currentNetworkData, layer);
                 console.log('Layer switched to:', layer);
             } else {
                 console.warn('No network data available for layer switch');
+                console.log('Available data:', window.currentNetworkData);
+                // Fallback: reload all data
+                loadSampleData();
             }
         }
 
