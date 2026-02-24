@@ -217,6 +217,9 @@
             flex: 1;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             border: 1px solid rgba(0, 102, 204, 0.2);
+            min-height: 300px;
+            min-width: 300px;
+            position: relative;
         }
 
         .inspector {
@@ -579,6 +582,10 @@
             }
 
             const container = document.getElementById('network');
+            console.log('Container found:', !!container);
+            console.log('Container size:', container.clientWidth, 'x', container.clientHeight);
+            console.log('Container offsetHeight:', container.offsetHeight);
+
             const options = {
                 physics: {
                     enabled: false
@@ -622,6 +629,14 @@
             };
 
             network = new vis.Network(container, networkData, options);
+            console.log('Network created:', !!network);
+            console.log('Network canvas:', !!network.canvas);
+            console.log('Network canvas element:', network.canvas ? 'exists' : 'missing');
+
+            if (network.canvas) {
+                console.log('Canvas dimensions:', network.canvas.width, 'x', network.canvas.height);
+                console.log('Canvas style:', network.canvas.style.width, 'x', network.canvas.style.height);
+            }
 
             network.on('click', function(params) {
                 if (params.nodes.length > 0) {
@@ -779,10 +794,22 @@
             // Ensure network is ready before fitting
             if (network && network.canvas) {
                 console.log('Network canvas ready, fitting view...');
-                network.fit({ animation: { duration: 500 } });
-                console.log('Network fit complete');
+                console.log('Canvas size:', network.canvas.clientWidth, 'x', network.canvas.clientHeight);
+                console.log('Nodes in network:', network.body.nodes.length);
+                console.log('Edges in network:', network.body.edges.length);
+
+                // Force redraw
+                network.redraw();
+
+                // Fit the view
+                setTimeout(function() {
+                    network.fit({ animation: { duration: 500 } });
+                    console.log('Network fit complete');
+                }, 100);
             } else {
                 console.warn('Network not ready for fit');
+                console.log('network exists:', !!network);
+                console.log('network.canvas exists:', network ? !!network.canvas : false);
             }
 
             currentLayer = layer;
