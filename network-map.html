@@ -532,10 +532,15 @@
     <script>
         let network = null;
         let currentLayer = 'physical';
-        let networkData = { nodes: new vis.DataSet(), edges: new vis.DataSet() };
+        let networkData = null;
 
         // Initialize network visualization
         function initNetwork() {
+            // Initialize networkData with vis.DataSet (vis library must be loaded first)
+            if (!networkData) {
+                networkData = { nodes: new vis.DataSet(), edges: new vis.DataSet() };
+            }
+
             const container = document.getElementById('network');
             const options = {
                 physics: {
@@ -685,7 +690,15 @@
         }
 
         function displayLayer(data, layer) {
-            if (!data.layers || !data.layers[layer]) return;
+            // Ensure networkData is initialized
+            if (!networkData) {
+                networkData = { nodes: new vis.DataSet(), edges: new vis.DataSet() };
+            }
+
+            if (!data.layers || !data.layers[layer]) {
+                console.error('Layer data not found:', layer);
+                return;
+            }
 
             const layerData = data.layers[layer];
             networkData.nodes.clear();
@@ -794,6 +807,12 @@
         }
 
         function updateStats(layerData) {
+            if (!layerData) {
+                document.getElementById('nodeCount').textContent = '0';
+                document.getElementById('edgeCount').textContent = '0';
+                document.getElementById('subnetCount').textContent = '0';
+                return;
+            }
             document.getElementById('nodeCount').textContent = layerData.nodes ? layerData.nodes.length : 0;
             document.getElementById('edgeCount').textContent = layerData.edges ? layerData.edges.length : 0;
             document.getElementById('subnetCount').textContent = layerData.nodes ? layerData.nodes.filter(n => n.type === 'subnet').length : 0;
@@ -811,14 +830,6 @@
             const options = network.getOptions();
             options.physics.enabled = !options.physics.enabled;
             network.setOptions(options);
-        }
-
-        function showDataInput() {
-            document.getElementById('dataModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('dataModal').classList.remove('active');
         }
 
         function processDataInput() {
@@ -971,16 +982,45 @@
             document.body.removeChild(link);
         }
 
-        // Initialize on page load
+        // Initialize on page load (after all resources including vis.js are loaded)
         window.addEventListener('load', function() {
+            console.log('Page loaded, initializing...');
+            console.log('vis library available:', typeof vis !== 'undefined');
+
+            // Ensure vis is available
+            if (typeof vis === 'undefined') {
+                console.error('ERROR: vis.js library failed to load from CDN');
+                alert('ERROR: Network visualization library (vis.js) failed to load.\n\nTry refreshing the page or check your internet connection.');
+                return;
+            }
+
             initializePageContext();
             initNetwork();
+            console.log('Initialization complete');
         });
 
         // Close modal on background click
-        document.getElementById('dataModal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
+        if (document.getElementById('dataModal')) {
+            document.getElementById('dataModal').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+        }
+
+        // Ensure modal functionality works even during initialization
+        function closeModal() {
+            const modal = document.getElementById('dataModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function showDataInput() {
+            // Ensure network is initialized before showing modal
+            if (!network) {
+                alert('Network visualization is still initializing. Please wait a moment and try again.');
+                return;
+            }
+            const modal = document.getElementById('dataModal');
+            if (modal) modal.classList.add('active');
+        }
     </script>
 </body>
 </html>
