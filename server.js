@@ -84,20 +84,31 @@ function getOperationMetadata(opId) {
         const lines = content.split('\n');
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
+
+            // Extract operation name
             if (line.includes('Operation Name:')) {
                 const value = line.split('Operation Name:')[1]?.trim() || opId;
                 metadata.name = value.replace(/^\*+\s*/, '').trim();
             }
-            if (line.includes('Status:')) {
+
+            // Extract current status (try Current Status first, then Status)
+            if (line.includes('**Current Status:**') || line.includes('Current Status:')) {
+                const value = line.split(/\*\*?Current Status:\*\*?/)[1]?.trim() || 'unknown';
+                metadata.status = value.replace(/^\*+\s*/, '').trim();
+            } else if (line.includes('Status:') && !metadata.status) {
                 const value = line.split('Status:')[1]?.trim() || 'unknown';
                 metadata.status = value.replace(/^\*+\s*/, '').trim();
             }
+
+            // Extract creation date
             if (line.includes('Created:')) {
                 const value = line.split('Created:')[1]?.trim() || '';
                 metadata.created = value.replace(/^\*+\s*/, '').trim();
             }
-            if (line.includes('Last Updated:')) {
-                const value = line.split('Last Updated:')[1]?.trim() || '';
+
+            // Extract last update date
+            if (line.includes('Last Updated:') || line.includes('Status Last Updated:')) {
+                const value = line.split(/Last Updated:|Status Last Updated:/)[1]?.trim() || '';
                 metadata.lastUpdated = value.replace(/^\*+\s*/, '').trim();
             }
         }
@@ -607,6 +618,69 @@ function updateMDMPStepStatus(opId, step, status) {
     }
 }
 
+/**
+ * Update operation phase in metadata
+ */
+function updateOperationPhase(opId, phaseId) {
+    try {
+        const metadataFile = path.join(OPERATIONS_DIR, opId, 'OPERATION_METADATA.md');
+
+        if (!fs.existsSync(metadataFile)) {
+            return {
+                success: false,
+                error: 'Operation metadata file not found'
+            };
+        }
+
+        let content = fs.readFileSync(metadataFile, 'utf8');
+
+        // Map phaseId to full phase name
+        const phaseMap = {
+            'planning': 'Planning Phase - Deployment & Integration',
+            'execution': 'Execution Phase - Active Operations',
+            'transition': 'Transition Phase - Hardening & Sustainment',
+            'completion': 'Completion Phase - Assessment & Closure'
+        };
+
+        const phaseName = phaseMap[phaseId.toLowerCase()] || phaseId;
+
+        // Update Current Status line
+        const statusPattern = /\*\*Current Status:\*\*.*/i;
+
+        if (statusPattern.test(content)) {
+            content = content.replace(statusPattern, `**Current Status:** ${phaseName}`);
+        } else {
+            // Add new entry if not found
+            content += `\n**Current Status:** ${phaseName}`;
+        }
+
+        // Update Status Last Updated timestamp
+        const now = new Date().toISOString();
+        const lastUpdatedPattern = /\*\*Status Last Updated:\*\*.*/i;
+
+        if (lastUpdatedPattern.test(content)) {
+            content = content.replace(lastUpdatedPattern, `**Status Last Updated:** ${now}`);
+        } else {
+            content += `\n**Status Last Updated:** ${now}`;
+        }
+
+        fs.writeFileSync(metadataFile, content, 'utf8');
+
+        return {
+            success: true,
+            message: `Operation phase transitioned to ${phaseName}`,
+            phase: phaseId,
+            phaseName: phaseName
+        };
+    } catch (err) {
+        console.error(`Error updating operation phase for ${opId}:`, err);
+        return {
+            success: false,
+            error: err.message
+        };
+    }
+}
+
 // AR 25-50 compliance helper function
 function createAr25_50Document(annexTitle, annexFile, mdContent) {
     if (!docx) {
@@ -752,6 +826,7 @@ function createAr25_50Document(annexTitle, annexFile, mdContent) {
 // API endpoint handler
 async function handleApiRequest(pathname, req, res) {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    console.log(`📡 API: ${req.method} ${pathname}`);
 
     // Network Map API Endpoints
     if (pathname === '/api/network-map/data') {
@@ -1132,6 +1207,44 @@ async function handleApiRequest(pathname, req, res) {
                 res.end(JSON.stringify(result, null, 2));
             } catch (err) {
                 console.error(`Error updating MDMP step ${step}:`, err);
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: err.message }));
+            }
+        });
+        return;
+    }
+
+    // PUT /api/operations/{opId}/phase - Update operation phase
+    if (pathname.match(/^\/api\/operations\/[^/]+\/phase$/) && req.method === 'PUT') {
+        console.log(`🔄 Phase transition request: ${pathname}`);
+        const pathParts = pathname.split('/');
+        const opId = pathParts[3];
+        let body = '';
+
+        req.on('data', chunk => {
+            body += chunk.toString();
+            if (body.length > 10 * 1024) {
+                req.connection.destroy();
+            }
+        });
+
+        req.on('end', () => {
+            try {
+                const data = JSON.parse(body);
+                const phaseId = data.phase;
+
+                if (!phaseId) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'phase field required' }));
+                    return;
+                }
+
+                const result = updateOperationPhase(opId, phaseId);
+
+                res.writeHead(result.success ? 200 : 400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(result, null, 2));
+            } catch (err) {
+                console.error(`Error updating phase for ${opId}:`, err);
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: err.message }));
             }
