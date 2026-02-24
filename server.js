@@ -14,8 +14,6 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const url = require('url');
-const querystring = require('querystring');
 
 // Optional: Try to load docx library for export functionality
 let docx = null;
@@ -173,9 +171,9 @@ function createAr25_50Document(annexTitle, annexFile, mdContent) {
 // API endpoint handler
 async function handleApiRequest(pathname, req, res) {
     if (pathname === '/api/export/annex') {
-        const queryData = url.parse(req.url, true).query;
-        const annexName = queryData.name || 'ANNEX-M';
-        const operationId = queryData.operation || 'OP-DEFENDER_DCO-RA_2026-02-23';
+        const urlObj = new URL(req.url, `http://${req.headers.host}`);
+        const annexName = urlObj.searchParams.get('name') || 'ANNEX-M';
+        const operationId = urlObj.searchParams.get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
 
         // Map annex names to file paths
         const annexMap = {
@@ -232,8 +230,8 @@ async function handleApiRequest(pathname, req, res) {
 
 // Create server
 const server = http.createServer((req, res) => {
-    const parsedUrl = url.parse(req.url, true);
-    const pathname = parsedUrl.pathname;
+    const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    const pathname = urlObj.pathname;
 
     // Handle API requests
     if (pathname.startsWith('/api/')) {
