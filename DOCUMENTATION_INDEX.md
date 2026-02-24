@@ -19,7 +19,7 @@
    - Feature list
    - Setup options
 
-3. **[QUICK_START_EXPORT.txt](./QUICK_START_EXPORT.txt)**
+3. **[QUICK_START_EXPORT.txt](./docs/guides/export/QUICK_START_EXPORT.txt)**
    - Step-by-step visual guide
    - Common workflows
    - Troubleshooting
@@ -56,10 +56,10 @@
 
 | Document | Purpose | Audience |
 |----------|---------|----------|
-| [DASHBOARD_README.md](./DASHBOARD_README.md) | Operations dashboard user guide | Dashboard users |
-| [EXPORT_ANNEXES_README.md](./EXPORT_ANNEXES_README.md) | Word export detailed guide | Export users |
-| [IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md) | Export feature overview | Technical users |
-| [QUICK_START_EXPORT.txt](./QUICK_START_EXPORT.txt) | Export quick reference | New export users |
+| [DASHBOARD_README.md](./docs/guides/dashboard/DASHBOARD_README.md) | Operations dashboard user guide | Dashboard users |
+| [EXPORT_ANNEXES_README.md](./docs/guides/export/EXPORT_ANNEXES_README.md) | Word export detailed guide | Export users |
+| [IMPLEMENTATION_SUMMARY.md](./docs/technical/implementation/IMPLEMENTATION_SUMMARY.md) | Export feature overview | Technical users |
+| [QUICK_START_EXPORT.txt](./docs/guides/export/QUICK_START_EXPORT.txt) | Export quick reference | New export users |
 
 ---
 
@@ -88,7 +88,7 @@
 | Document | Purpose | Audience |
 |----------|---------|----------|
 | [docs/presentations/PRESENTATION_STYLE_GUIDE.md](./docs/presentations/PRESENTATION_STYLE_GUIDE.md) | Military briefing format guide | Briefers |
-| [generate_mdmp_professional.py](./generate_mdmp_professional.py) | PowerPoint generator (legacy) | Briefers (fallback) |
+| [docs/legacy/generate_mdmp_professional.py](./docs/legacy/generate_mdmp_professional.py) | PowerPoint generator (legacy) | Briefers (fallback) |
 
 ---
 
@@ -130,7 +130,7 @@
 **Reference Materials:**
 - [docs/doctrine/INDEX.md](./docs/doctrine/INDEX.md) — Doctrinal references
 - [docs/roles/mdmp-role-mapping.md](./docs/roles/mdmp-role-mapping.md) — MDMP integration
-- [EXPORT_ANNEXES_README.md](./EXPORT_ANNEXES_README.md) — Export annexes
+- [docs/guides/export/EXPORT_ANNEXES_README.md](./docs/guides/export/EXPORT_ANNEXES_README.md) — Export annexes
 
 **Operations:**
 - [operation/OP-DEFENDER_DCO-RA_2026-02-23/](./operation/OP-DEFENDER_DCO-RA_2026-02-23/) — See example planning products
@@ -173,10 +173,10 @@
 
 **For Deployment:**
 - [WHAT_IS_CYBERPLANNER.md](./WHAT_IS_CYBERPLANNER.md) — Quick start (3 steps)
-- [EXPORT_ANNEXES_README.md](./EXPORT_ANNEXES_README.md) — Export API documentation
+- [docs/guides/export/EXPORT_ANNEXES_README.md](./docs/guides/export/EXPORT_ANNEXES_README.md) — Export API documentation
 
 **For Customization:**
-- [CONSOLIDATION_PLAN.md](./CONSOLIDATION_PLAN.md) — Improvement roadmap
+- [docs/planning/CONSOLIDATION_PLAN.md](./docs/planning/CONSOLIDATION_PLAN.md) — Improvement roadmap
 - [docs/doctrine/AGENT_INTEGRATION_GUIDE.md](./docs/doctrine/AGENT_INTEGRATION_GUIDE.md) — Extending AI capabilities
 
 ---
@@ -198,7 +198,7 @@
 ### Scenario: "I'm new to CyberPlanner"
 1. Read: [WHAT_IS_CYBERPLANNER.md](./WHAT_IS_CYBERPLANNER.md)
 2. Read: [README.md](./README.md)
-3. Follow: [QUICK_START_EXPORT.txt](./QUICK_START_EXPORT.txt) or [DASHBOARD_README.md](./DASHBOARD_README.md)
+3. Follow: [docs/guides/export/QUICK_START_EXPORT.txt](./docs/guides/export/QUICK_START_EXPORT.txt) or [docs/guides/dashboard/DASHBOARD_README.md](./docs/guides/dashboard/DASHBOARD_README.md)
 
 ### Scenario: "I need to plan an operation"
 1. Read: [docs/roles/ROLES.md](./docs/roles/ROLES.md)
@@ -212,13 +212,13 @@
 3. Reference: [operation/OP-DEFENDER_DCO-RA_2026-02-23/EXECUTION/](./operation/OP-DEFENDER_DCO-RA_2026-02-23/EXECUTION/) — Example analysis
 
 ### Scenario: "I need to export annexes"
-1. Read: [QUICK_START_EXPORT.txt](./QUICK_START_EXPORT.txt) (quick) or [EXPORT_ANNEXES_README.md](./EXPORT_ANNEXES_README.md) (detailed)
+1. Read: [docs/guides/export/QUICK_START_EXPORT.txt](./docs/guides/export/QUICK_START_EXPORT.txt) (quick) or [docs/guides/export/EXPORT_ANNEXES_README.md](./docs/guides/export/EXPORT_ANNEXES_README.md) (detailed)
 2. Start: `node server.js`
 3. Navigate: `http://localhost:3000/mdmp-dashboard.html`
 4. Click: Export button
 
 ### Scenario: "I want to improve the project"
-1. Read: [CONSOLIDATION_PLAN.md](./CONSOLIDATION_PLAN.md)
+1. Read: [docs/planning/CONSOLIDATION_PLAN.md](./docs/planning/CONSOLIDATION_PLAN.md)
 2. Follow: Implementation checklist
 3. Reference: [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) — Architecture section
 
@@ -235,24 +235,26 @@ CyberPlanner/
 ├── README.md                       ← Project overview
 ├── CLAUDE.md                       ← AI context (Claude Code loads this)
 │
-├── 📊 Dashboards
+├── 📊 Dashboards & Servers
 │   ├── dashboard.html              (Operations dashboard)
 │   ├── mdmp-dashboard.html         (MDMP planning dashboard)
-│   ├── server.js                   (HTTP server + API)
-│   ├── DASHBOARD_README.md
-│   ├── EXPORT_ANNEXES_README.md
-│   ├── IMPLEMENTATION_SUMMARY.md
-│   └── QUICK_START_EXPORT.txt
+│   └── server.js                   (HTTP server + API)
 │
 ├── 📚 Documentation
 │   └── docs/
-│       ├── README.md               (Documentation hub)
-│       ├── QUICKSTART.md
-│       ├── CONTRIBUTING.md
 │       ├── roles/                  (AI role documentation)
 │       ├── competency/             (Training framework)
-│       ├── doctrine/               (Doctrinal references)
+│       ├── doctrine/               (Doctrinal references + 17 PDFs)
 │       ├── presentations/          (Briefing guides)
+│       ├── guides/                 (User-facing guides)
+│       │   ├── export/             (Export documentation)
+│       │   └── dashboard/          (Dashboard guides)
+│       ├── technical/              (Technical documentation)
+│       │   └── implementation/     (Export feature details)
+│       ├── planning/               (Project roadmap)
+│       ├── history/                (Project history)
+│       ├── examples/               (Sample outputs)
+│       ├── legacy/                 (Deprecated tools)
 │       └── POAMs/                  (Planning documentation)
 │
 ├── 🎯 Operations
@@ -285,7 +287,7 @@ CyberPlanner/
 
 ### Goal: Start Using CyberPlanner Today
 1. [WHAT_IS_CYBERPLANNER.md](./WHAT_IS_CYBERPLANNER.md) — Quick start section (5 min)
-2. [QUICK_START_EXPORT.txt](./QUICK_START_EXPORT.txt) (10 min)
+2. [docs/guides/export/QUICK_START_EXPORT.txt](./docs/guides/export/QUICK_START_EXPORT.txt) (10 min)
 3. Follow setup steps (10 min)
 
 **Total Time:** ~25 minutes
@@ -311,7 +313,7 @@ CyberPlanner/
 ---
 
 ### Goal: Contribute or Improve the Project
-1. [CONSOLIDATION_PLAN.md](./CONSOLIDATION_PLAN.md) (20 min)
+1. [docs/planning/CONSOLIDATION_PLAN.md](./docs/planning/CONSOLIDATION_PLAN.md) (20 min)
 2. [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) — Architecture section (15 min)
 3. [CLAUDE.md](./CLAUDE.md) (10 min)
 
@@ -323,7 +325,7 @@ CyberPlanner/
 
 ### Short Documents (< 10 minutes to read)
 
-- `QUICK_START_EXPORT.txt` — Visual quick start guide
+- `docs/guides/export/QUICK_START_EXPORT.txt` — Visual quick start guide
 - `README.md` — Project overview
 - `LICENSE.md` — Usage terms
 - Individual role docs in `docs/roles/`
@@ -331,14 +333,14 @@ CyberPlanner/
 ### Medium Documents (10-30 minutes)
 
 - `WHAT_IS_CYBERPLANNER.md` — Executive summary
-- `DASHBOARD_README.md` — Dashboard usage
-- `EXPORT_ANNEXES_README.md` — Export guide
+- `docs/guides/dashboard/DASHBOARD_README.md` — Dashboard usage
+- `docs/guides/export/EXPORT_ANNEXES_README.md` — Export guide
 - Doctrine references in `docs/doctrine/`
 
 ### Long Documents (30+ minutes)
 
 - `PROJECT_GUIDE.md` — Comprehensive architecture (45+ min)
-- `CONSOLIDATION_PLAN.md` — Improvement roadmap (30+ min)
+- `docs/planning/CONSOLIDATION_PLAN.md` — Improvement roadmap (30+ min)
 - POAM guidance in `docs/POAMs/GUIDANCE/`
 
 ---
@@ -349,15 +351,15 @@ CyberPlanner/
 
 | Need | Where to Look |
 |------|---------------|
-| Get started quickly | `WHAT_IS_CYBERPLANNER.md` + `QUICK_START_EXPORT.txt` |
+| Get started quickly | `WHAT_IS_CYBERPLANNER.md` + `docs/guides/export/QUICK_START_EXPORT.txt` |
 | Understand the system | `PROJECT_GUIDE.md` |
 | Learn about roles | `docs/roles/ROLES.md` + `docs/roles/task-role-map.md` |
-| Use dashboards | `DASHBOARD_README.md` or `EXPORT_ANNEXES_README.md` |
+| Use dashboards | `docs/guides/dashboard/DASHBOARD_README.md` or `docs/guides/export/EXPORT_ANNEXES_README.md` |
 | Reference doctrine | `docs/doctrine/INDEX.md` |
 | Plan an operation | `PROJECT_GUIDE.md` + operation examples |
 | Create a briefing | `docs/presentations/PRESENTATION_STYLE_GUIDE.md` |
 | Set up for deployment | `WHAT_IS_CYBERPLANNER.md` → Quick Start |
-| Improve the project | `CONSOLIDATION_PLAN.md` |
+| Improve the project | `docs/planning/CONSOLIDATION_PLAN.md` |
 | Understand POAMs | `docs/POAMs/README.md` |
 | See example products | `operation/OP-DEFENDER_DCO-RA_2026-02-23/` |
 
@@ -368,10 +370,10 @@ CyberPlanner/
 ### Common Questions
 
 - **"Where do I start?"** → [WHAT_IS_CYBERPLANNER.md](./WHAT_IS_CYBERPLANNER.md)
-- **"How do I use the dashboards?"** → [DASHBOARD_README.md](./DASHBOARD_README.md)
-- **"How do I export documents?"** → [QUICK_START_EXPORT.txt](./QUICK_START_EXPORT.txt)
+- **"How do I use the dashboards?"** → [docs/guides/dashboard/DASHBOARD_README.md](./docs/guides/dashboard/DASHBOARD_README.md)
+- **"How do I export documents?"** → [docs/guides/export/QUICK_START_EXPORT.txt](./docs/guides/export/QUICK_START_EXPORT.txt)
 - **"Which role should I use?"** → [docs/roles/task-role-map.md](./docs/roles/task-role-map.md)
-- **"What can I customize?"** → [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) + [CONSOLIDATION_PLAN.md](./CONSOLIDATION_PLAN.md)
+- **"What can I customize?"** → [PROJECT_GUIDE.md](./PROJECT_GUIDE.md) + [docs/planning/CONSOLIDATION_PLAN.md](./docs/planning/CONSOLIDATION_PLAN.md)
 
 ### Still Need Help?
 
