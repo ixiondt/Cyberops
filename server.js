@@ -170,8 +170,120 @@ function createAr25_50Document(annexTitle, annexFile, mdContent) {
 
 // API endpoint handler
 async function handleApiRequest(pathname, req, res) {
+    const urlObj = new URL(req.url, `http://${req.headers.host}`);
+
+    // Network Map API Endpoints
+    if (pathname === '/api/network-map/data') {
+        const operationId = urlObj.searchParams.get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
+        const dataFile = path.join(__dirname, `operation/${operationId}/INTELLIGENCE/network_topology_data.json`);
+
+        try {
+            if (fs.existsSync(dataFile)) {
+                const data = fs.readFileSync(dataFile, 'utf8');
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(data);
+            } else {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Network topology data not found for operation' }));
+            }
+        } catch (err) {
+            console.error('Network data retrieval error:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
+    if (pathname === '/api/network-map/save') {
+        if (req.method !== 'POST') {
+            res.writeHead(405, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Method not allowed' }));
+            return;
+        }
+
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString();
+            if (body.length > 10 * 1024 * 1024) {
+                req.connection.destroy();
+            }
+        });
+
+        req.on('end', () => {
+            try {
+                const payload = JSON.parse(body);
+                const operationId = payload.operation || 'OP-DEFENDER_DCO-RA_2026-02-23';
+                const dataDir = path.join(__dirname, `operation/${operationId}/INTELLIGENCE`);
+
+                // Ensure directory exists
+                if (!fs.existsSync(dataDir)) {
+                    fs.mkdirSync(dataDir, { recursive: true });
+                }
+
+                const dataFile = path.join(dataDir, 'network_topology_data.json');
+
+                // Update lastUpdated timestamp
+                payload.lastUpdated = new Date().toISOString();
+
+                fs.writeFileSync(dataFile, JSON.stringify(payload, null, 2), 'utf8');
+
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: true,
+                    message: 'Network topology saved',
+                    file: dataFile
+                }));
+            } catch (err) {
+                console.error('Network data save error:', err);
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: err.message }));
+            }
+        });
+        return;
+    }
+
+    if (pathname === '/api/export/ipb-terrain') {
+        const operationId = urlObj.searchParams.get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
+        const dataFile = path.join(__dirname, `operation/${operationId}/INTELLIGENCE/network_topology_data.json`);
+
+        try {
+            if (!fs.existsSync(dataFile)) {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Network topology data not found' }));
+                return;
+            }
+
+            const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'));
+
+            // Generate IPB document content
+            const ipbContent = generateIPBDocument(data);
+            const doc = createAr25_50Document('IPB CYBERSPACE TERRAIN ANALYSIS', 'IPB_Terrain.md', ipbContent);
+
+            if (!doc) {
+                res.writeHead(503, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Word export not available' }));
+                return;
+            }
+
+            const buffer = await docx.Packer.toBuffer(doc);
+            const filename = `IPB_Cyberspace_Terrain_${operationId}_${new Date().toISOString().split('T')[0]}.docx`;
+
+            res.writeHead(200, {
+                'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'Content-Disposition': `attachment; filename="${filename}"`,
+                'Content-Length': buffer.length
+            });
+            res.end(buffer);
+        } catch (err) {
+            console.error('IPB export error:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
+    // Original annex export endpoint
     if (pathname === '/api/export/annex') {
-        const urlObj = new URL(req.url, `http://${req.headers.host}`);
         const annexName = urlObj.searchParams.get('name') || 'ANNEX-M';
         const operationId = urlObj.searchParams.get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
 
@@ -226,6 +338,144 @@ async function handleApiRequest(pathname, req, res) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'API endpoint not found' }));
     }
+}
+
+// Generate IPB Cyberspace Terrain document from network topology
+function generateIPBDocument(networkData) {
+    const layers = networkData.layers || {};
+
+    let content = `# IPB CYBERSPACE TERRAIN ANALYSIS
+${networkData.operation || 'OP-UNKNOWN'}
+
+## 1. PHYSICAL LAYER ANALYSIS
+
+### 1.1 Infrastructure Overview
+The physical layer consists of geographically distributed data centers and edge nodes providing mission-critical connectivity and computing resources.
+
+`;
+
+    // Add physical layer details
+    if (layers.physical && layers.physical.nodes) {
+        content += `#### Facilities (${layers.physical.nodes.length} total):\n\n`;
+        layers.physical.nodes.forEach(node => {
+            content += `- **${node.label}**: ${node.description}\n`;
+            if (node.location) content += `  - Location: ${node.location}\n`;
+            if (node.criticality) content += `  - Criticality: ${node.criticality}\n`;
+            if (node.bandwidth) content += `  - Bandwidth: ${node.bandwidth}\n`;
+            if (node.redundancy) content += `  - Redundancy: ${node.redundancy}\n`;
+        });
+        content += '\n';
+    }
+
+    // Add logical layer
+    content += `## 2. LOGICAL LAYER ANALYSIS
+
+### 2.1 Network Architecture
+The logical layer defines subnets, security zones, and network segmentation policies.
+
+`;
+
+    if (layers.logical && layers.logical.nodes) {
+        // Count by type
+        const types = {};
+        layers.logical.nodes.forEach(n => {
+            types[n.type] = (types[n.type] || 0) + 1;
+        });
+
+        content += `#### Network Resources:\n\n`;
+        Object.entries(types).forEach(([type, count]) => {
+            content += `- **${type}**: ${count}\n`;
+        });
+        content += '\n';
+
+        // Key terrain analysis
+        const keyTerrain = layers.logical.nodes.filter(n => n.key_terrain);
+        if (keyTerrain.length > 0) {
+            content += `#### Key Terrain (${keyTerrain.length}):\n\n`;
+            keyTerrain.forEach(node => {
+                content += `- **${node.label}**: ${node.description}\n`;
+                if (node.criticality) content += `  - Criticality: ${node.criticality}\n`;
+            });
+            content += '\n';
+        }
+    }
+
+    // Add persona layer
+    content += `## 3. PERSONA LAYER ANALYSIS
+
+### 3.1 Account and Privilege Structure
+The persona layer identifies user accounts, service accounts, and privilege tiers critical to mission operations.
+
+`;
+
+    if (layers.persona && layers.persona.nodes) {
+        const criticalAccounts = layers.persona.nodes.filter(n => n.criticality === 'CRITICAL');
+        if (criticalAccounts.length > 0) {
+            content += `#### Critical Accounts/Roles (${criticalAccounts.length}):\n\n`;
+            criticalAccounts.forEach(node => {
+                content += `- **${node.label}**: ${node.description}\n`;
+                if (node.privilege_level) content += `  - Privilege: ${node.privilege_level}\n`;
+                if (node.risk_level) content += `  - Risk: ${node.risk_level}\n`;
+            });
+            content += '\n';
+        }
+    }
+
+    // Add OAKOC analysis
+    content += `## 4. OAKOC ANALYSIS (Observation, Avenues, Key Terrain, Obstacles, Cover)
+
+### 4.1 Observation
+Primary network monitoring points: Firewalls, IDS/IPS sensors, proxy gateways, authentication servers.
+
+### 4.2 Avenues of Approach
+- External/DMZ path for internet-sourced threats
+- Internal lateral movement paths between subnets
+- Privilege escalation paths through service accounts
+
+### 4.3 Key Terrain
+Critical infrastructure nodes that, if compromised, would significantly impact mission:
+- Core routers and switches
+- Critical domain admin and database service accounts
+- Physical data center access points
+
+### 4.4 Obstacles
+- Network segmentation via firewalls
+- Authentication requirements (AD, MFA where deployed)
+- Logging and monitoring controls
+
+### 4.5 Cover
+Hidden attack infrastructure:
+- Unauthorized shadow IT or rogue access points
+- Unpatched systems in network gaps
+- Compromised but dormant accounts
+
+## 5. THREAT COA MAPPING
+
+Named Areas of Interest (NAIs) for threat detection:
+- Network edges (firewall logs, IDS alerts)
+- Service account usage patterns
+- Privilege escalation attempts
+- Data exfiltration channels
+
+## 6. RECOMMENDED INTELLIGENCE REQUIREMENTS
+
+Primary Intelligence Requirements (PIRs):
+1. What access methods are most likely for this threat?
+2. What lateral movement paths would be preferred?
+3. Which critical accounts pose highest compromise risk?
+4. What detection gaps exist in our current monitoring?
+
+## 7. NOTES
+
+- Classification: ${networkData.classification || 'UNCLASSIFIED // FOUO'}
+- Last Updated: ${networkData.lastUpdated || 'Unknown'}
+- Source: CyberPlanner Network Mapping Tool
+
+---
+
+UNCLASSIFIED // FOUO`;
+
+    return content;
 }
 
 // Create server

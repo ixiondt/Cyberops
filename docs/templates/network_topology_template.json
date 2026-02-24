@@ -1,0 +1,83 @@
+{
+  "operation": "OP-CODE_TYPE_DATE",
+  "version": "1.0",
+  "lastUpdated": "2026-02-24T00:00:00Z",
+  "classification": "UNCLASSIFIED // FOUO",
+  "layers": {
+    "physical": {
+      "description": "Physical Infrastructure Layer - Data centers, links, edge nodes, physical locations",
+      "nodes": [
+        {
+          "id": "unique_id",
+          "label": "Location/Name\n(City, State)",
+          "type": "datacenter|edge|facility",
+          "criticality": "CRITICAL|HIGH|MEDIUM|LOW",
+          "location": "City, State",
+          "description": "Brief description of the facility",
+          "bandwidth": "speed",
+          "redundancy": "N+1|N|etc"
+        }
+      ],
+      "edges": [
+        {
+          "from": "node_id",
+          "to": "node_id",
+          "label": "capacity",
+          "description": "Link description",
+          "type": "MPLS|Internet|Private",
+          "redundancy": "Primary|Secondary"
+        }
+      ]
+    },
+    "logical": {
+      "description": "Logical Layer - Subnets, VLANs, security zones, routing, firewalls, IDS/IPS",
+      "nodes": [
+        {
+          "id": "unique_id",
+          "label": "Subnet Name\nCIDR_NOTATION",
+          "type": "subnet|firewall|router|security|server|switch",
+          "criticality": "CRITICAL|HIGH|MEDIUM|LOW",
+          "vlan": "vlan_number_or_null",
+          "description": "Description of the resource",
+          "hosts": "number_of_hosts_or_null",
+          "model": "device_model_if_applicable",
+          "key_terrain": true|false
+        }
+      ],
+      "edges": [
+        {
+          "from": "node_id",
+          "to": "node_id",
+          "label": "traffic_type",
+          "description": "Connection description",
+          "type": "perimeter|internal|transit|admin|detection"
+        }
+      ]
+    },
+    "persona": {
+      "description": "Persona Layer - User accounts, service accounts, privilege tiers, trust relationships",
+      "nodes": [
+        {
+          "id": "unique_id",
+          "label": "Account/Group Name",
+          "type": "account|group|service|role",
+          "criticality": "CRITICAL|HIGH|MEDIUM|LOW",
+          "privilege_level": "Domain Admin|Local Admin|User|Service",
+          "description": "Description of the account or group",
+          "risk_level": "HIGH|MEDIUM|LOW|null",
+          "members": "number_for_groups_or_null",
+          "key_terrain": true|false
+        }
+      ],
+      "edges": [
+        {
+          "from": "account_id",
+          "to": "account_or_resource_id",
+          "label": "relationship_type",
+          "description": "Trust or privilege relationship",
+          "trust": "implicit|delegated|supervisory|contractual"
+        }
+      ]
+    }
+  }
+}

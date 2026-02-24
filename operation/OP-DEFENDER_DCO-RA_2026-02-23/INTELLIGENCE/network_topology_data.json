@@ -1,0 +1,365 @@
+{
+  "operation": "OP-DEFENDER_DCO-RA_2026-02-23",
+  "version": "1.0",
+  "lastUpdated": "2026-02-24T10:30:00Z",
+  "classification": "UNCLASSIFIED // FOUO",
+  "layers": {
+    "physical": {
+      "description": "Physical Infrastructure Layer - Data centers, links, edge nodes",
+      "nodes": [
+        {
+          "id": "hq",
+          "label": "HQ Data Center\n(Washington DC)",
+          "type": "datacenter",
+          "criticality": "CRITICAL",
+          "location": "Washington, DC",
+          "description": "Primary headquarters data center hosting core mission systems",
+          "bandwidth": "1Gbps",
+          "redundancy": "N+1"
+        },
+        {
+          "id": "dc-east",
+          "label": "East Regional DC\n(Ashburn, VA)",
+          "type": "datacenter",
+          "criticality": "CRITICAL",
+          "location": "Ashburn, Virginia",
+          "description": "Eastern regional data center supporting operational sites",
+          "bandwidth": "1Gbps",
+          "redundancy": "N+1"
+        },
+        {
+          "id": "dc-west",
+          "label": "West Regional DC\n(Phoenix, AZ)",
+          "type": "datacenter",
+          "criticality": "HIGH",
+          "location": "Phoenix, Arizona",
+          "description": "Western regional data center with secondary mission support",
+          "bandwidth": "500Mbps",
+          "redundancy": "N"
+        },
+        {
+          "id": "edge-1",
+          "label": "Edge Node\n(New York)",
+          "type": "edge",
+          "criticality": "HIGH",
+          "location": "New York, NY",
+          "description": "Edge computing node for distributed processing",
+          "bandwidth": "100Mbps",
+          "redundancy": "N"
+        },
+        {
+          "id": "edge-2",
+          "label": "Edge Node\n(Chicago)",
+          "type": "edge",
+          "criticality": "MEDIUM",
+          "location": "Chicago, IL",
+          "description": "Secondary edge node for load balancing",
+          "bandwidth": "100Mbps",
+          "redundancy": "N"
+        }
+      ],
+      "edges": [
+        {
+          "from": "hq",
+          "to": "dc-east",
+          "label": "100Mbps",
+          "description": "Primary link to eastern data center",
+          "type": "MPLS",
+          "redundancy": "Primary"
+        },
+        {
+          "from": "hq",
+          "to": "dc-west",
+          "label": "100Mbps",
+          "description": "Primary link to western data center",
+          "type": "MPLS",
+          "redundancy": "Primary"
+        },
+        {
+          "from": "dc-east",
+          "to": "edge-1",
+          "label": "50Mbps",
+          "description": "Connection to New York edge node",
+          "type": "Internet",
+          "redundancy": "Primary"
+        },
+        {
+          "from": "dc-east",
+          "to": "edge-2",
+          "label": "50Mbps",
+          "description": "Connection to Chicago edge node",
+          "type": "Internet",
+          "redundancy": "Primary"
+        },
+        {
+          "from": "dc-west",
+          "to": "edge-1",
+          "label": "50Mbps",
+          "description": "Secondary path to New York",
+          "type": "Internet",
+          "redundancy": "Secondary"
+        }
+      ]
+    },
+    "logical": {
+      "description": "Logical Layer - Subnets, VLANs, security zones, routing",
+      "nodes": [
+        {
+          "id": "subnet-mgmt",
+          "label": "Management\n10.0.0.0/24",
+          "type": "subnet",
+          "criticality": "CRITICAL",
+          "vlan": 100,
+          "description": "Management network for administrative access",
+          "hosts": 15,
+          "key_terrain": true
+        },
+        {
+          "id": "subnet-dmz",
+          "label": "DMZ\n10.1.0.0/24",
+          "type": "subnet",
+          "criticality": "HIGH",
+          "vlan": 200,
+          "description": "Demilitarized zone for external-facing services",
+          "hosts": 8,
+          "key_terrain": false
+        },
+        {
+          "id": "subnet-prod",
+          "label": "Production\n10.2.0.0/23",
+          "type": "subnet",
+          "criticality": "CRITICAL",
+          "vlan": 300,
+          "description": "Production network hosting mission-critical applications",
+          "hosts": 120,
+          "key_terrain": true
+        },
+        {
+          "id": "subnet-ops",
+          "label": "Operations\n10.4.0.0/24",
+          "type": "subnet",
+          "criticality": "HIGH",
+          "vlan": 400,
+          "description": "Operations staff network",
+          "hosts": 25,
+          "key_terrain": false
+        },
+        {
+          "id": "fw-edge",
+          "label": "Edge Firewall\n10.0.254.1",
+          "type": "firewall",
+          "criticality": "CRITICAL",
+          "model": "Palo Alto PA-5220",
+          "description": "Perimeter security gateway",
+          "key_terrain": true
+        },
+        {
+          "id": "fw-internal",
+          "label": "Internal Firewall\n10.2.254.1",
+          "type": "firewall",
+          "criticality": "CRITICAL",
+          "model": "Fortinet FortiGate 7000F",
+          "description": "Internal network segmentation firewall",
+          "key_terrain": true
+        },
+        {
+          "id": "router-core",
+          "label": "Core Router\n10.0.0.254",
+          "type": "router",
+          "criticality": "CRITICAL",
+          "model": "Cisco ASR 9000",
+          "description": "Core routing and switching",
+          "key_terrain": true
+        },
+        {
+          "id": "router-edge",
+          "label": "Edge Router\n10.1.0.254",
+          "type": "router",
+          "criticality": "HIGH",
+          "model": "Cisco ASR 920",
+          "description": "WAN edge router",
+          "key_terrain": false
+        },
+        {
+          "id": "ids-1",
+          "label": "IDS/IPS\n10.0.1.100",
+          "type": "security",
+          "criticality": "CRITICAL",
+          "model": "Suricata IDS",
+          "description": "Intrusion detection and prevention",
+          "key_terrain": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "fw-edge",
+          "to": "subnet-dmz",
+          "label": "external",
+          "description": "External traffic ingress",
+          "type": "perimeter"
+        },
+        {
+          "from": "subnet-dmz",
+          "to": "router-core",
+          "label": "transit",
+          "description": "Traffic through core",
+          "type": "transit"
+        },
+        {
+          "from": "router-core",
+          "to": "fw-internal",
+          "label": "egress",
+          "description": "Egress through internal firewall",
+          "type": "internal"
+        },
+        {
+          "from": "fw-internal",
+          "to": "subnet-prod",
+          "label": "internal",
+          "description": "Access to production network",
+          "type": "internal"
+        },
+        {
+          "from": "router-core",
+          "to": "subnet-mgmt",
+          "label": "admin",
+          "description": "Management network access",
+          "type": "admin"
+        },
+        {
+          "from": "ids-1",
+          "to": "fw-edge",
+          "label": "mirror",
+          "description": "IDS traffic mirror port",
+          "type": "detection"
+        },
+        {
+          "from": "router-edge",
+          "to": "router-core",
+          "label": "wan",
+          "description": "WAN to core connection",
+          "type": "transit"
+        }
+      ]
+    },
+    "persona": {
+      "description": "Persona Layer - User accounts, service accounts, privilege tiers",
+      "nodes": [
+        {
+          "id": "svc-adm",
+          "label": "Service Account\nAdministrator",
+          "type": "account",
+          "criticality": "CRITICAL",
+          "privilege_level": "Domain Admin",
+          "description": "Domain administrator service account",
+          "risk_level": "HIGH",
+          "key_terrain": true
+        },
+        {
+          "id": "svc-app",
+          "label": "Application\nService Account",
+          "type": "account",
+          "criticality": "HIGH",
+          "privilege_level": "Local Admin",
+          "description": "Web application service account",
+          "risk_level": "MEDIUM",
+          "key_terrain": false
+        },
+        {
+          "id": "svc-db",
+          "label": "Database\nService Account",
+          "type": "account",
+          "criticality": "CRITICAL",
+          "privilege_level": "DBA",
+          "description": "Database administrator service account",
+          "risk_level": "HIGH",
+          "key_terrain": true
+        },
+        {
+          "id": "svc-backup",
+          "label": "Backup\nService Account",
+          "type": "account",
+          "criticality": "HIGH",
+          "privilege_level": "Backup Operator",
+          "description": "Backup and recovery service account",
+          "risk_level": "MEDIUM",
+          "key_terrain": false
+        },
+        {
+          "id": "group-ops",
+          "label": "Operations\nUser Group",
+          "type": "group",
+          "criticality": "HIGH",
+          "privilege_level": "Operator",
+          "description": "Operations team user group",
+          "members": 12,
+          "key_terrain": false
+        },
+        {
+          "id": "group-dev",
+          "label": "Development\nUser Group",
+          "type": "group",
+          "criticality": "MEDIUM",
+          "privilege_level": "Developer",
+          "description": "Development team user group",
+          "members": 8,
+          "key_terrain": false
+        },
+        {
+          "id": "group-security",
+          "label": "Security\nUser Group",
+          "type": "group",
+          "criticality": "CRITICAL",
+          "privilege_level": "Security Officer",
+          "description": "Security operations team",
+          "members": 5,
+          "key_terrain": true
+        }
+      ],
+      "edges": [
+        {
+          "from": "svc-adm",
+          "to": "svc-app",
+          "label": "manages",
+          "description": "Admin account manages application",
+          "trust": "implicit"
+        },
+        {
+          "from": "svc-app",
+          "to": "svc-db",
+          "label": "authenticates",
+          "description": "Application connects to database",
+          "trust": "implicit"
+        },
+        {
+          "from": "svc-backup",
+          "to": "svc-db",
+          "label": "backup",
+          "description": "Backup account accesses database",
+          "trust": "implicit"
+        },
+        {
+          "from": "group-ops",
+          "to": "svc-adm",
+          "label": "can_assume",
+          "description": "Operations can assume admin privileges",
+          "trust": "delegated"
+        },
+        {
+          "from": "group-security",
+          "to": "group-ops",
+          "label": "supervises",
+          "description": "Security oversees operations",
+          "trust": "supervisory"
+        },
+        {
+          "from": "group-dev",
+          "to": "svc-app",
+          "label": "deploys",
+          "description": "Developers deploy application",
+          "trust": "delegated"
+        }
+      ]
+    }
+  }
+}

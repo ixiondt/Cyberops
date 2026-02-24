@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberspace Terrain Network Map - CyberPlanner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/vis-network.min.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #001428 0%, #003d7a 50%, #001428 100%);
+            border-bottom: 3px solid #0066cc;
+            padding: 15px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .classification {
+            background: #dc2626;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .header-info {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #1e293b;
+            border-right: 2px solid rgba(0, 102, 204, 0.3);
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #00d4ff;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .layer-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .layer-btn {
+            padding: 10px 12px;
+            border: 2px solid rgba(0, 102, 204, 0.3);
+            background: rgba(0, 102, 204, 0.05);
+            color: #cbd5e1;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .layer-btn:hover {
+            border-color: #0066cc;
+            background: rgba(0, 102, 204, 0.1);
+            transform: translateX(4px);
+        }
+
+        .layer-btn.active {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 12px;
+            border: 2px solid rgba(0, 102, 204, 0.3);
+            background: linear-gradient(135deg, #003d7a 0%, #001f3f 100%);
+            color: #00d4ff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            border-color: #10b981;
+        }
+
+        .btn-success:hover {
+            border-color: #10b981;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #network {
+            flex: 1;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(0, 102, 204, 0.2);
+        }
+
+        .inspector {
+            width: 280px;
+            background: #1e293b;
+            border-left: 2px solid rgba(0, 102, 204, 0.3);
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .inspector-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #00d4ff;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .inspector-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .inspector-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px;
+            background: rgba(0, 102, 204, 0.05);
+            border-left: 3px solid #0066cc;
+            border-radius: 4px;
+        }
+
+        .inspector-label {
+            font-size: 10px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .inspector-value {
+            font-size: 12px;
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #64748b;
+            font-size: 12px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .bottom-panel {
+            background: #1e293b;
+            border-top: 2px solid rgba(0, 102, 204, 0.3);
+            padding: 15px 20px;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .bottom-panel.active {
+            display: block;
+        }
+
+        .bottom-panel-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .input-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        input[type="text"], input[type="file"], select, textarea {
+            flex: 1;
+            padding: 8px;
+            background: #0f172a;
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            color: #e2e8f0;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        input[type="text"]:focus, input[type="file"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+        }
+
+        .criticality-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .criticality-critical {
+            background: #dc2626;
+            color: white;
+        }
+
+        .criticality-high {
+            background: #ea580c;
+            color: white;
+        }
+
+        .criticality-medium {
+            background: #eab308;
+            color: #000;
+        }
+
+        .criticality-low {
+            background: #10b981;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border: 2px solid #0066cc;
+            border-radius: 8px;
+            padding: 25px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #00d4ff;
+        }
+
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 200px;
+            }
+            .inspector {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar,
+            .inspector {
+                display: none;
+            }
+        }
+
+        .vis-node {
+            border-width: 2px;
+            border-color: #0066cc;
+            font-size: 14px;
+        }
+
+        .vis-edge {
+            color: #0066cc;
+            width: 1px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <h1 class="header-title">🛡️ Cyberspace Terrain - Network Map</h1>
+            <span class="classification">UNCLASSIFIED // FOUO</span>
+        </div>
+        <div class="header-right">
+            <span class="header-info" id="operationInfo">Operation: OP-DEFENDER_DCO-RA_2026-02-23</span>
+            <span class="header-info" id="layerInfo">Layer: Physical</span>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <!-- Layer Selector -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">Network Layers</div>
+                <div class="layer-selector">
+                    <button class="layer-btn active" onclick="switchLayer('physical')" title="Data centers, links, physical locations">📍 Physical Layer</button>
+                    <button class="layer-btn" onclick="switchLayer('logical')" title="Subnets, firewalls, routers, security zones">🔗 Logical Layer</button>
+                    <button class="layer-btn" onclick="switchLayer('persona')" title="User accounts, service accounts, privilege tiers">👤 Persona Layer</button>
+                </div>
+            </div>
+
+            <!-- View Controls -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">View Controls</div>
+                <div class="control-buttons">
+                    <button class="btn" onclick="fitNetwork()" title="Zoom to fit entire network">🔍 Fit to View</button>
+                    <button class="btn" onclick="resetZoom()" title="Reset zoom and pan to default">↺ Reset Zoom</button>
+                    <button class="btn" onclick="toggleHierarchy()" title="Toggle hierarchical vs physics layout">▦ Layout</button>
+                </div>
+            </div>
+
+            <!-- Data Actions -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">Data Actions</div>
+                <div class="control-buttons">
+                    <button class="btn" onclick="showDataInput()">📥 Load Data</button>
+                    <button class="btn" onclick="exportImage()">📸 Export Image</button>
+                    <button class="btn" onclick="exportIPB()">📄 Export IPB</button>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">Network Stats</div>
+                <div class="inspector-content">
+                    <div class="inspector-item">
+                        <span class="inspector-label">Nodes</span>
+                        <span class="inspector-value" id="nodeCount">0</span>
+                    </div>
+                    <div class="inspector-item">
+                        <span class="inspector-label">Edges</span>
+                        <span class="inspector-value" id="edgeCount">0</span>
+                    </div>
+                    <div class="inspector-item">
+                        <span class="inspector-label">Subnets</span>
+                        <span class="inspector-value" id="subnetCount">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Canvas -->
+        <div class="canvas-container">
+            <div id="network"></div>
+
+            <!-- Bottom Panel for Data Input -->
+            <div class="bottom-panel" id="bottomPanel">
+                <div class="bottom-panel-title">Load Network Topology</div>
+                <div class="input-form">
+                    <div class="input-row">
+                        <input type="file" id="jsonFile" accept=".json" placeholder="Select topology JSON file">
+                        <button class="btn btn-success" onclick="loadJSON()">Load JSON</button>
+                    </div>
+                    <div class="input-row">
+                        <input type="file" id="csvFile" accept=".csv" placeholder="Select host list CSV">
+                        <button class="btn btn-success" onclick="loadCSV()">Import CSV</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Inspector -->
+        <div class="inspector">
+            <div class="inspector-title">Node Inspector</div>
+            <div class="inspector-content" id="inspectorContent">
+                <div class="empty-state">Click a node to view details</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Data Input -->
+    <div class="modal" id="dataModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <div class="modal-title">Load Network Topology Data</div>
+            <div class="input-form">
+                <div style="background: rgba(0, 212, 255, 0.1); padding: 15px; border-left: 3px solid #00d4ff; border-radius: 4px; margin-bottom: 15px;">
+                    <strong style="color: #00d4ff;">📌 Data Format Instructions</strong>
+                    <div style="font-size: 11px; color: #cbd5e1; margin-top: 10px; line-height: 1.6;">
+                        <strong>JSON Format:</strong> Use template from docs/templates/network_topology_template.json with Physical/Logical/Persona layers
+                        <br><br>
+                        <strong>CSV Format (for host import):</strong>
+                        <br>IP,Hostname,OS,Role,Criticality,Subnet
+                        <br>10.2.0.10,web-prod-01,Windows Server 2019,Web Server,HIGH,10.2.0.0/24
+                        <br>10.2.0.11,app-prod-01,Linux CentOS,App Server,CRITICAL,10.2.0.0/24
+                    </div>
+                </div>
+
+                <label>
+                    <strong style="color: #00d4ff;">JSON Topology File:</strong>
+                    <input type="file" id="modalJsonFile" accept=".json" style="margin-top: 5px;">
+                </label>
+                <label style="margin-top: 12px;">
+                    <strong style="color: #00d4ff;">CSV Host List (Alternative):</strong>
+                    <input type="file" id="modalCsvFile" accept=".csv" style="margin-top: 5px;">
+                </label>
+                <button class="btn btn-success" onclick="processDataInput()" style="width: 100%; margin-top: 15px;">Load Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let network = null;
+        let currentLayer = 'physical';
+        let networkData = { nodes: new vis.DataSet(), edges: new vis.DataSet() };
+
+        // Initialize network visualization
+        function initNetwork() {
+            const container = document.getElementById('network');
+            const options = {
+                physics: {
+                    enabled: false
+                },
+                layout: {
+                    hierarchical: {
+                        enabled: true,
+                        levelSeparation: 200,
+                        nodeSpacing: 150,
+                        direction: 'UD',
+                        sortMethod: 'hubsize'
+                    }
+                },
+                nodes: {
+                    shape: 'box',
+                    margin: 10,
+                    widthConstraint: { maximum: 200 },
+                    font: { size: 13, color: '#e2e8f0', face: 'Segoe UI' },
+                    color: {
+                        background: '#003d7a',
+                        border: '#0066cc',
+                        highlight: {
+                            background: '#00d4ff',
+                            border: '#00d4ff'
+                        }
+                    }
+                },
+                edges: {
+                    color: '#0066cc',
+                    width: 2,
+                    arrows: 'to',
+                    smooth: { type: 'cubicBezier' },
+                    font: { size: 10, color: '#cbd5e1' }
+                },
+                interaction: {
+                    hover: true,
+                    navigationButtons: true,
+                    keyboard: true,
+                    zoomView: true
+                }
+            };
+
+            network = new vis.Network(container, networkData, options);
+
+            network.on('click', function(params) {
+                if (params.nodes.length > 0) {
+                    showNodeDetails(params.nodes[0]);
+                } else {
+                    clearInspector();
+                }
+            });
+
+            network.on('stabilizationProgress', function(params) {
+                console.log('Network stabilizing...');
+            });
+
+            // Load sample data on init
+            loadSampleData();
+        }
+
+        // Load network data from server or use sample data
+        function loadSampleData() {
+            // Try to load from server first
+            const operationId = new URLSearchParams(window.location.search).get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
+
+            fetch(`/api/network-map/data?operation=${encodeURIComponent(operationId)}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Loaded network topology from server');
+                    displayLayer(data, 'physical');
+                    updateStats(data.layers.physical);
+                })
+                .catch(err => {
+                    console.log('Using sample data:', err.message);
+                    loadSampleNetworkData();
+                });
+        }
+
+        function loadSampleNetworkData() {
+            const sampleData = {
+                operation: 'OP-DEFENDER_DCO-RA_2026-02-23',
+                layers: {
+                    physical: {
+                        nodes: [
+                            { id: 'hq', label: 'HQ Data Center\n(Washington DC)', type: 'datacenter', criticality: 'CRITICAL' },
+                            { id: 'dc-east', label: 'East Regional DC\n(Ashburn, VA)', type: 'datacenter', criticality: 'CRITICAL' },
+                            { id: 'dc-west', label: 'West Regional DC\n(Phoenix, AZ)', type: 'datacenter', criticality: 'HIGH' },
+                            { id: 'edge-1', label: 'Edge Node\n(New York)', type: 'edge', criticality: 'HIGH' },
+                            { id: 'edge-2', label: 'Edge Node\n(Chicago)', type: 'edge', criticality: 'MEDIUM' }
+                        ],
+                        edges: [
+                            { from: 'hq', to: 'dc-east', label: '100Mbps' },
+                            { from: 'hq', to: 'dc-west', label: '100Mbps' },
+                            { from: 'dc-east', to: 'edge-1', label: '50Mbps' },
+                            { from: 'dc-east', to: 'edge-2', label: '50Mbps' }
+                        ]
+                    },
+                    logical: {
+                        nodes: [
+                            { id: 'subnet-mgmt', label: 'Management\n10.0.0.0/24', type: 'subnet', criticality: 'CRITICAL' },
+                            { id: 'subnet-dmz', label: 'DMZ\n10.1.0.0/24', type: 'subnet', criticality: 'HIGH' },
+                            { id: 'subnet-prod', label: 'Production\n10.2.0.0/23', type: 'subnet', criticality: 'CRITICAL' },
+                            { id: 'fw-edge', label: 'Edge Firewall', type: 'firewall', criticality: 'CRITICAL' },
+                            { id: 'router-core', label: 'Core Router', type: 'router', criticality: 'CRITICAL' }
+                        ],
+                        edges: [
+                            { from: 'fw-edge', to: 'subnet-dmz', label: 'external' },
+                            { from: 'subnet-dmz', to: 'router-core', label: 'transit' },
+                            { from: 'router-core', to: 'subnet-prod', label: 'internal' },
+                            { from: 'router-core', to: 'subnet-mgmt', label: 'admin' }
+                        ]
+                    },
+                    persona: {
+                        nodes: [
+                            { id: 'svc-adm', label: 'Service Account\nAdministrator', type: 'account', criticality: 'CRITICAL' },
+                            { id: 'app-svc', label: 'Application\nService Account', type: 'account', criticality: 'HIGH' },
+                            { id: 'db-svc', label: 'Database\nService Account', type: 'account', criticality: 'CRITICAL' },
+                            { id: 'user-ops', label: 'Operations\nUser Group', type: 'group', criticality: 'HIGH' }
+                        ],
+                        edges: [
+                            { from: 'svc-adm', to: 'app-svc' },
+                            { from: 'app-svc', to: 'db-svc' },
+                            { from: 'user-ops', to: 'svc-adm' }
+                        ]
+                    }
+                }
+            };
+
+            displayLayer(sampleData, 'physical');
+            updateStats(sampleData.layers.physical);
+        }
+
+        // Initialize visualization on page load with operation context
+        function initializePageContext() {
+            const params = new URLSearchParams(window.location.search);
+            const operationId = params.get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
+            document.getElementById('operationInfo').textContent = `Operation: ${operationId}`;
+        }
+
+        function displayLayer(data, layer) {
+            if (!data.layers || !data.layers[layer]) return;
+
+            const layerData = data.layers[layer];
+            networkData.nodes.clear();
+            networkData.edges.clear();
+
+            // Add nodes with styling
+            layerData.nodes.forEach(node => {
+                const color = getCriticalityColor(node.criticality);
+                networkData.nodes.add({
+                    id: node.id,
+                    label: node.label,
+                    title: `${node.label}\nCriticality: ${node.criticality}\nType: ${node.type}`,
+                    color: { background: color.bg, border: color.border },
+                    font: { size: 12 },
+                    margin: 15,
+                    borderWidth: 3
+                });
+            });
+
+            // Add edges
+            layerData.edges.forEach(edge => {
+                networkData.edges.add({
+                    from: edge.from,
+                    to: edge.to,
+                    label: edge.label || '',
+                    font: { size: 10 }
+                });
+            });
+
+            network.fit();
+            currentLayer = layer;
+        }
+
+        function switchLayer(layer) {
+            // Update button states
+            document.querySelectorAll('.layer-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update header
+            const layerNames = {
+                physical: 'Physical',
+                logical: 'Logical',
+                persona: 'Persona'
+            };
+            document.getElementById('layerInfo').textContent = `Layer: ${layerNames[layer]}`;
+
+            // For now, reload sample data for the layer
+            // In production, this would use saved operation data
+            loadSampleData();
+        }
+
+        function getCriticalityColor(criticality) {
+            const colors = {
+                'CRITICAL': { bg: '#dc2626', border: '#b91c1c' },
+                'HIGH': { bg: '#ea580c', border: '#c2410c' },
+                'MEDIUM': { bg: '#eab308', border: '#ca8a04' },
+                'LOW': { bg: '#10b981', border: '#059669' }
+            };
+            return colors[criticality] || colors['MEDIUM'];
+        }
+
+        function showNodeDetails(nodeId) {
+            const node = networkData.nodes.get(nodeId);
+            if (!node) return;
+
+            const inspectorContent = document.getElementById('inspectorContent');
+            const criticality = node.title ? extractCriticality(node.title) : 'UNKNOWN';
+            const type = node.title ? extractType(node.title) : 'unknown';
+
+            inspectorContent.innerHTML = `
+                <div class="inspector-item">
+                    <span class="inspector-label">Node ID</span>
+                    <span class="inspector-value">${nodeId}</span>
+                </div>
+                <div class="inspector-item">
+                    <span class="inspector-label">Name</span>
+                    <span class="inspector-value">${node.label}</span>
+                </div>
+                <div class="inspector-item">
+                    <span class="inspector-label">Type</span>
+                    <span class="inspector-value">${type}</span>
+                </div>
+                <div class="inspector-item">
+                    <span class="inspector-label">Criticality</span>
+                    <span class="criticality-badge criticality-${criticality.toLowerCase()}">${criticality}</span>
+                </div>
+                <div class="inspector-item">
+                    <span class="inspector-label">Connected Nodes</span>
+                    <span class="inspector-value">${networkData.edges.get({ filter: e => e.from === nodeId || e.to === nodeId }).length}</span>
+                </div>
+            `;
+        }
+
+        function extractCriticality(title) {
+            const match = title.match(/Criticality: (\w+)/);
+            return match ? match[1] : 'UNKNOWN';
+        }
+
+        function extractType(title) {
+            const match = title.match(/Type: (\w+)/);
+            return match ? match[1] : 'unknown';
+        }
+
+        function clearInspector() {
+            document.getElementById('inspectorContent').innerHTML = '<div class="empty-state">Click a node to view details</div>';
+        }
+
+        function updateStats(layerData) {
+            document.getElementById('nodeCount').textContent = layerData.nodes ? layerData.nodes.length : 0;
+            document.getElementById('edgeCount').textContent = layerData.edges ? layerData.edges.length : 0;
+            document.getElementById('subnetCount').textContent = layerData.nodes ? layerData.nodes.filter(n => n.type === 'subnet').length : 0;
+        }
+
+        function fitNetwork() {
+            network.fit({ animation: { duration: 1000 } });
+        }
+
+        function resetZoom() {
+            network.moveTo({ position: { x: 0, y: 0 }, scale: 1, animation: { duration: 1000 } });
+        }
+
+        function toggleHierarchy() {
+            const options = network.getOptions();
+            options.physics.enabled = !options.physics.enabled;
+            network.setOptions(options);
+        }
+
+        function showDataInput() {
+            document.getElementById('dataModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('dataModal').classList.remove('active');
+        }
+
+        function processDataInput() {
+            const jsonFile = document.getElementById('modalJsonFile').files[0];
+            if (jsonFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        displayLayer(data, currentLayer);
+                        updateStats(data.layers[currentLayer]);
+                        closeModal();
+                    } catch (err) {
+                        alert('Error parsing JSON: ' + err.message);
+                    }
+                };
+                reader.readAsText(jsonFile);
+            }
+        }
+
+        function loadJSON() {
+            processDataInput();
+        }
+
+        function loadCSV() {
+            const csvFile = document.getElementById('csvFile').files[0];
+            if (csvFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const lines = e.target.result.split('\n');
+                        const nodes = [];
+                        const edges = [];
+
+                        // Parse CSV header: IP,Hostname,OS,Role,Criticality,Subnet
+                        for (let i = 1; i < lines.length; i++) {
+                            if (lines[i].trim() === '') continue;
+                            const parts = lines[i].split(',').map(p => p.trim());
+                            if (parts.length >= 5) {
+                                nodes.push({
+                                    id: `host-${i}`,
+                                    label: `${parts[1] || 'Unknown'}\n${parts[0]}`,
+                                    type: 'host',
+                                    ip: parts[0],
+                                    hostname: parts[1] || 'Unknown',
+                                    os: parts[2] || 'Unknown',
+                                    role: parts[3] || 'Workstation',
+                                    criticality: parts[4] || 'MEDIUM',
+                                    subnet: parts[5] || 'UNKNOWN'
+                                });
+                            }
+                        }
+
+                        if (nodes.length === 0) {
+                            alert('No valid hosts found in CSV');
+                            return;
+                        }
+
+                        // Update network with imported hosts
+                        networkData.nodes.clear();
+                        networkData.edges.clear();
+
+                        nodes.forEach(node => {
+                            const color = getCriticalityColor(node.criticality);
+                            networkData.nodes.add({
+                                id: node.id,
+                                label: node.label,
+                                title: `${node.hostname} (${node.ip})\nOS: ${node.os}\nRole: ${node.role}\nCriticality: ${node.criticality}`,
+                                color: { background: color.bg, border: color.border },
+                                font: { size: 11 },
+                                margin: 10
+                            });
+                        });
+
+                        network.fit({ animation: { duration: 1000 } });
+                        updateStats({ nodes: nodes, edges: [] });
+                        alert(`Successfully imported ${nodes.length} hosts from CSV`);
+                    } catch (err) {
+                        alert('Error parsing CSV: ' + err.message);
+                    }
+                };
+                reader.readAsText(csvFile);
+            }
+        }
+
+        function exportImage() {
+            try {
+                const canvas = network.canvas.canvas;
+                const image = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = image;
+                link.download = `network-map-${currentLayer}-${new Date().toISOString().split('T')[0]}.png`;
+                link.click();
+                console.log('Image exported successfully');
+            } catch (err) {
+                alert('Error exporting image: ' + err.message);
+            }
+        }
+
+        function exportIPB() {
+            const operationId = new URLSearchParams(window.location.search).get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
+            const url = `/api/export/ipb-terrain?operation=${encodeURIComponent(operationId)}`;
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `IPB_Cyberspace_Terrain_${new Date().toISOString().split('T')[0]}.docx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            initializePageContext();
+            initNetwork();
+        });
+
+        // Close modal on background click
+        document.getElementById('dataModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>
