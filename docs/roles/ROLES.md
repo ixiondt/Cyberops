@@ -19,7 +19,7 @@ This guide enables seamless role switching between your three specialized cyber 
 - Synchronization matrices, PIR/RFI tracking, risk assessments
 - Decision briefs or commander's critical information recommendations
 
-**Reference docs:** `skill-cyberopsplanner.yaml` | `CLAUDE.md`
+**Reference docs:** [skill-cyberopsplanner.yaml](../personnel/skill-cyberopsplanner.yaml) | `CLAUDE.md`
 
 ---
 
@@ -35,7 +35,7 @@ This guide enables seamless role switching between your three specialized cyber 
 - Incident response support or triage recommendations
 - Forensic timeline analysis or baseline deviation reports
 
-**Reference docs:** `skill-host-analyst.yaml`
+**Reference docs:** [skill-host-analyst.yaml](../personnel/skill-host-analyst.yaml)
 
 ---
 
@@ -52,7 +52,7 @@ This guide enables seamless role switching between your three specialized cyber 
 - Detection logic recommendations or traffic baseline analysis
 - Network architecture assessment relative to observed activity
 
-**Reference docs:** `skill-network-analyst.yaml`
+**Reference docs:** [skill-network-analyst.yaml](../personnel/skill-network-analyst.yaml)
 
 ---
 
@@ -79,10 +79,10 @@ or use an alias:
 
 ## Role Context
 
-Each role is defined in its respective YAML file in this directory:
-- `skill-cyberopsplanner.yaml` — Cyber Operations Planner system prompt
-- `skill-host-analyst.yaml` — Host Analyst system prompt
-- `skill-network-analyst.yaml` — Network Analyst system prompt
+Each role is defined in its respective YAML file in `docs/personnel/`:
+- [skill-cyberopsplanner.yaml](../personnel/skill-cyberopsplanner.yaml) — Cyber Operations Planner system prompt
+- [skill-host-analyst.yaml](../personnel/skill-host-analyst.yaml) — Host Analyst system prompt
+- [skill-network-analyst.yaml](../personnel/skill-network-analyst.yaml) — Network Analyst system prompt
 
 All roles maintain **unclassified discipline** and operate within **U.S. Army cyber doctrine** frameworks.
 

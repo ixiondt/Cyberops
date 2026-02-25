@@ -12,9 +12,9 @@ Welcome to the CyberOpsPlanner project documentation. This folder contains all g
 Complete documentation on the three specialized roles and how to use them.
 
 - **[ROLES.md](./roles/ROLES.md)** — Overview of all available roles and how to switch between them
-- **[skill-cyberopsplanner.md](./roles/skill-cyberopsplanner.md)** — Cyber Operations Planner role documentation
-- **[skill-17c-host-analyst.md](./roles/skill-17c-host-analyst.md)** — 17C Host Analyst role documentation
-- **[skill-17c-network-analyst.md](./roles/skill-17c-network-analyst.md)** — 17C Network Analyst role documentation
+- **[skill-cyberopsplanner.yaml](./personnel/skill-cyberopsplanner.yaml)** — Cyber Operations Planner role documentation
+- **[skill-host-analyst.yaml](./personnel/skill-host-analyst.yaml)** — 17C Host Analyst role documentation
+- **[skill-network-analyst.yaml](./personnel/skill-network-analyst.yaml)** — 17C Network Analyst role documentation
 - **[task-role-map.md](./roles/task-role-map.md)** — Which role to use for specific tasks
 - **[mdmp-role-mapping.md](./roles/mdmp-role-mapping.md)** — MDMP step-to-role mapping guide
 
@@ -41,11 +41,12 @@ docs/
 ├── CONTRIBUTING.md                     (contribution guidelines)
 ├── roles/                              (role documentation)
 │   ├── ROLES.md
-│   ├── skill-cyberopsplanner.md
-│   ├── skill-17c-host-analyst.md
-│   ├── skill-17c-network-analyst.md
 │   ├── task-role-map.md
 │   └── mdmp-role-mapping.md
+├── personnel/                          (role system prompts)
+│   ├── skill-cyberopsplanner.yaml
+│   ├── skill-host-analyst.yaml
+│   └── skill-network-analyst.yaml
 ├── competency/                         (competency framework)
 │   ├── competency-matrix.md
 │   ├── proficiency-tiers.md

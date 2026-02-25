@@ -77,7 +77,7 @@ See [docs/roles/ROLES.md](./docs/roles/ROLES.md) for full role documentation and
 
 **Word Export:** Click "Export" on MDMP products → AR 25-50 compliant .docx (Annex M, Annex A)
 
-**Claude Code:** `claude code .` → Loads this prompt + three role YAMLs
+**Claude Code:** `claude code .` → Loads this prompt + three role YAMLs from `docs/personnel/`
 - `skill-cyberopsplanner.yaml` — Planner role
 - `skill-host-analyst.yaml` — Host analyst role
 - `skill-network-analyst.yaml` — Network analyst role

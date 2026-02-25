@@ -53,10 +53,11 @@ CyberPlanner/
 │   ├── LICENSE.md                   ← Usage terms
 │   └── PROJECT_GUIDE.md             ← This file
 │
-├── 🤖 AI ROLE DEFINITIONS (YAML)
-│   ├── skill-cyberopsplanner.yaml   ← Planner role system prompt
-│   ├── skill-host-analyst.yaml      ← Host analyst system prompt
-│   └── skill-network-analyst.yaml   ← Network analyst system prompt
+├── 👥 PERSONNEL / ROLES (YAML)
+│   └── docs/personnel/
+│       ├── skill-cyberopsplanner.yaml   ← Planner role system prompt
+│       ├── skill-host-analyst.yaml      ← Host analyst system prompt
+│       └── skill-network-analyst.yaml   ← Network analyst system prompt
 │
 ├── 🖥️ DASHBOARDS (HTML + JavaScript)
 │   ├── dashboard.html               ← Operations dashboard (incidents, POAMs)
@@ -72,9 +73,9 @@ CyberPlanner/
 │   │   ├── CONTRIBUTING.md          ← Contribution guidelines
 │   │   ├── roles/                   ← Role documentation
 │   │   │   ├── ROLES.md
-│   │   │   ├── skill-cyberopsplanner.md
-│   │   │   ├── skill-17c-host-analyst.md
-│   │   │   ├── skill-17c-network-analyst.md
+│   │   │   ├── skill-cyberopsplanner.yaml (moved to docs/personnel/)
+│   │   │   ├── skill-host-analyst.yaml (moved to docs/personnel/)
+│   │   │   ├── skill-network-analyst.yaml (moved to docs/personnel/)
 │   │   │   ├── mdmp-role-mapping.md
 │   │   │   └── task-role-map.md
 │   │   ├── competency/              ← Competency framework
@@ -138,7 +139,7 @@ CyberPlanner/
 
 **Purpose:** Define specialized analyst roles that users can switch between
 
-**Files:**
+**Files:** Located in `docs/personnel/`
 - `skill-cyberopsplanner.yaml` (3,059 bytes)
 - `skill-host-analyst.yaml` (2,537 bytes)
 - `skill-network-analyst.yaml` (2,789 bytes)

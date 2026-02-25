@@ -46,9 +46,9 @@
 | [docs/roles/ROLES.md](./docs/roles/ROLES.md) | How to switch between roles | Analysts |
 | [docs/roles/task-role-map.md](./docs/roles/task-role-map.md) | Which role to use for specific tasks | Analysts |
 | [docs/roles/mdmp-role-mapping.md](./docs/roles/mdmp-role-mapping.md) | How roles support MDMP steps | Planners |
-| [docs/roles/skill-cyberopsplanner.md](./docs/roles/skill-cyberopsplanner.md) | Planner role details | Planners |
-| [docs/roles/skill-17c-host-analyst.md](./docs/roles/skill-17c-host-analyst.md) | Host analyst role details | Host Analysts |
-| [docs/roles/skill-17c-network-analyst.md](./docs/roles/skill-17c-network-analyst.md) | Network analyst role details | Network Analysts |
+| [docs/personnel/skill-cyberopsplanner.yaml](./docs/personnel/skill-cyberopsplanner.yaml) | Planner role definition | Planners |
+| [docs/personnel/skill-host-analyst.yaml](./docs/personnel/skill-host-analyst.yaml) | Host analyst role definition | Host Analysts |
+| [docs/personnel/skill-network-analyst.yaml](./docs/personnel/skill-network-analyst.yaml) | Network analyst role definition | Network Analysts |
 
 ---
 
@@ -264,12 +264,14 @@ CyberPlanner/
 │   │   ├── OPERATION_TEMPLATE/
 │   │   └── OP-DEFENDER_DCO-RA_2026-02-23/  (Example operation)
 │
+├── 👥 Personnel / Roles
+│   ├── skill-cyberopsplanner.yaml
+│   ├── skill-host-analyst.yaml
+│   └── skill-network-analyst.yaml
+│
 └── 🔧 System Files
     ├── package.json
-    ├── package-lock.json
-    ├── skill-cyberopsplanner.yaml
-    ├── skill-host-analyst.yaml
-    └── skill-network-analyst.yaml
+    └── package-lock.json
 ```
 
 ---
