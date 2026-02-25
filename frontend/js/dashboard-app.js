@@ -654,7 +654,12 @@ function renderMDMPFlow(products) {
     ];
 
     container.innerHTML = STEPS.map(step => {
-        const stepProducts = products.filter(p => p.step === step.num || p.step === step.num.toString());
+        const validFolders = getStepFolders(step.num);
+        const stepProducts = products.filter(p => {
+            if (p.step === step.num || p.step === step.num.toString()) return true;
+            if (validFolders.includes(p.step)) return true;
+            return false;
+        });
         return `
             <div style="flex: 0 0 140px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid ${step.color}; border-radius: 8px; padding: 12px; text-align: center;">
                 <div style="font-size: 16px; font-weight: bold; color: ${step.color};">${step.num}</div>
@@ -673,15 +678,24 @@ function renderMDMPProgress(products) {
     if (!container) return;
 
     const progressData = [
-        { label: 'Mission Analysis', step: 1 },
-        { label: 'COA Development', step: 3 },
-        { label: 'Wargaming', step: 4 },
+        { label: 'Mission Analysis', steps: [2] },
+        { label: 'COA Development', steps: [3] },
+        { label: 'Wargaming', steps: [4] },
         { label: 'Decision & Orders', steps: [5,6,7] }
     ];
 
     container.innerHTML = progressData.map(item => {
-        const steps = Array.isArray(item.steps) ? item.steps : [item.step];
-        const stepProducts = products.filter(p => steps.includes(parseInt(p.step)) || steps.includes(p.step));
+        const stepNumbers = item.steps;
+        const stepProducts = products.filter(p => {
+            // Check each step number
+            for (let stepNum of stepNumbers) {
+                const validFolders = getStepFolders(stepNum);
+                if (p.step === stepNum || p.step === stepNum.toString() || validFolders.includes(p.step)) {
+                    return true;
+                }
+            }
+            return false;
+        });
         const percentage = Math.min(100, stepProducts.length * 25);
 
         return `
@@ -696,6 +710,22 @@ function renderMDMPProgress(products) {
             </div>
         `;
     }).join('');
+}
+
+/**
+ * Get folder names for a step number
+ */
+function getStepFolders(stepNum) {
+    const folderMap = {
+        1: ['planning', '1'],
+        2: ['intelligence', '2'],
+        3: ['planning', '3'],
+        4: ['planning', '4'],
+        5: ['planning', '5'],
+        6: ['planning', '6'],
+        7: ['operations', '7']
+    };
+    return folderMap[stepNum] || [];
 }
 
 /**
@@ -716,9 +746,17 @@ function renderMDMPProducts(products) {
     ];
 
     container.innerHTML = STEPS.map(step => {
-        const stepProducts = products.filter(p => p.step === step.num || p.step === step.num.toString());
+        const validFolders = getStepFolders(step.num);
+        const stepProducts = products.filter(p => {
+            // Match by step number (handle both string and number)
+            if (p.step === step.num || p.step === step.num.toString()) return true;
+            // Match by folder name (intelligence, planning, operations)
+            if (validFolders.includes(p.step)) return true;
+            return false;
+        });
+
         const list = stepProducts.length > 0
-            ? stepProducts.map(p => `<li style="color: #cbd5e1; font-size: 10px; margin-bottom: 4px;">✓ ${p.name || p.file}</li>`).join('')
+            ? stepProducts.map(p => `<li style="color: #cbd5e1; font-size: 10px; margin-bottom: 4px;">✓ ${p.title || p.name || p.file}</li>`).join('')
             : '<li style="color: #94a3b8; font-size: 10px;">No products yet</li>';
 
         return `
