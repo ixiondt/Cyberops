@@ -1297,6 +1297,54 @@ async function handleApiRequest(pathname, req, res) {
     }
 
     // ============================================
+    // NEW API ENDPOINTS - DOCTRINE REFERENCES
+    // ============================================
+
+    // GET /api/doctrine - Get all doctrine references
+    if (pathname === '/api/doctrine') {
+        try {
+            const doctrine = getAllDoctrine();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(doctrine, null, 2));
+        } catch (err) {
+            console.error('Error retrieving doctrine:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
+    // GET /api/doctrine/step/:step - Get doctrine for MDMP step
+    if (pathname.match(/^\/api\/doctrine\/step\/\d+$/)) {
+        try {
+            const step = pathname.split('/').pop();
+            const doctrine = getDoctrineByStep(step);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(doctrine, null, 2));
+        } catch (err) {
+            console.error('Error retrieving doctrine by step:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
+    // GET /api/doctrine/role/:role - Get doctrine for a role
+    if (pathname.match(/^\/api\/doctrine\/role\/.+$/)) {
+        try {
+            const roleParts = pathname.split('/api/doctrine/role/');
+            const role = decodeURIComponent(roleParts[1]);
+            const doctrine = getDoctrineByRole(role);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(doctrine, null, 2));
+        } catch (err) {
+            console.error('Error retrieving doctrine by role:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
     // NEW API ENDPOINTS - OPERATION MANAGEMENT
     // ============================================
 
@@ -1742,6 +1790,114 @@ Primary Intelligence Requirements (PIRs):
 UNCLASSIFIED // FOUO`;
 
     return content;
+}
+
+// ============================================
+// DOCTRINE REFERENCE SYSTEM
+// ============================================
+
+/**
+ * Doctrine references mapped by MDMP step and role
+ * Extracted from docs/doctrine/INDEX.md
+ */
+const doctrineReferences = {
+    mdmpSteps: {
+        1: { // Receipt of Mission
+            title: "Receipt of Mission",
+            references: [
+                { publication: "ADP 5-0", file: "ARN18126-ADP_5-0-000-WEB-3.pdf", section: "Operations Process phases, running estimates", cyber: "MDMP foundation; cyber integration at each step" },
+                { publication: "FM 2-0", file: "fm2_0.pdf", section: "Intelligence process, threat baseline", cyber: "Threat assessment foundation for cyber" }
+            ]
+        },
+        2: { // Mission Analysis
+            title: "Mission Analysis",
+            references: [
+                { publication: "ATP 2-01.3", file: "ATP_2-01.3_Intelligence_Preparation_of_the_Battlefield.pdf", section: "IPB methodology, cyberspace terrain", cyber: "Cyberspace IPB (OT/IT, logical, physical layers)" },
+                { publication: "FM 3-12", file: "Document-11-Department-of-the-Army-FM-3-12.pdf", section: "Cyberspace operations doctrine, terrain", cyber: "Cyber terrain analysis, OAKOC in cyber" }
+            ]
+        },
+        3: { // COA Development
+            title: "COA Development",
+            references: [
+                { publication: "FM 3-12", file: "Document-11-Department-of-the-Army-FM-3-12.pdf", section: "Cyber tasks, control measures", cyber: "Cyber task definitions, task organization" },
+                { publication: "ATP 3-12.3", file: "atp3-12-3.pdf", section: "Cyberspace techniques, TTPs, C2", cyber: "Detailed operational procedures for cyber tasks" },
+                { publication: "ATP 5-0.1", file: "downloads_Army_Design_Methodology_ATP_5-0.1_July_2015.pdf", section: "Design methodology", cyber: "Approach to COA development" }
+            ]
+        },
+        4: { // COA Analysis (Wargame)
+            title: "COA Analysis / Wargame",
+            references: [
+                { publication: "JP 3-12", file: "2018-JP-3-12-Cyberspace-Operations.pdf", section: "Joint cyber ops, friction points", cyber: "Joint friction, decision points, branch/sequel" },
+                { publication: "MITRE ATT&CK", file: "getting-started-with-attack-october-2019.pdf", section: "Threat modeling, tactic/technique mapping", cyber: "Threat COA indicators, wargame indicators" },
+                { publication: "ATP 5-0.2.1", file: "atp5_0x2_1.pdf", section: "Wargame procedures", cyber: "Wargame methodology for cyber effects" }
+            ]
+        },
+        5: { // COA Comparison
+            title: "COA Comparison",
+            references: [
+                { publication: "ATP 5-0.2.1", file: "atp5_0x2_1.pdf", section: "Decision criteria, evaluation framework", cyber: "Cyber-specific evaluation criteria" },
+                { publication: "FM 3-13", file: "fm3-13_2016.pdf", section: "Information operations integration", cyber: "Cyber as enabler for IO effects" }
+            ]
+        },
+        6: { // COA Approval
+            title: "COA Approval",
+            references: [
+                { publication: "ADP 5-0", file: "ARN18126-ADP_5-0-000-WEB-3.pdf", section: "Commander decision-making, CCIR", cyber: "Commander's critical information requirements for cyber" },
+                { publication: "JP 3-12", file: "2018-JP-3-12-Cyberspace-Operations.pdf", section: "USCYBERCOM relationships", cyber: "Joint approval authorities, command relationships" }
+            ]
+        },
+        7: { // Orders Production
+            title: "Orders Production",
+            references: [
+                { publication: "FM 3-12", file: "Document-11-Department-of-the-Army-FM-3-12.pdf", section: "Annex M (Cyber Operations)", cyber: "Cyber annex format, template, control measures" },
+                { publication: "ATP 3-12.3", file: "atp3-12-3.pdf", section: "Task definitions, cyber operations tasks", cyber: "Task nomenclature, reporting requirements" }
+            ]
+        }
+    },
+    roles: {
+        "Cyber Operations Planner": [
+            { publication: "FM 3-12", file: "Document-11-Department-of-the-Army-FM-3-12.pdf", key: "Cyber task definitions, control measures, synchronization" },
+            { publication: "ATP 3-12.3", file: "atp3-12-3.pdf", key: "Operational procedures, techniques" },
+            { publication: "ATP 2-01.3", file: "ATP_2-01.3_Intelligence_Preparation_of_the_Battlefield.pdf", key: "Threat models, IPB methodology" },
+            { publication: "MITRE ATT&CK", file: "getting-started-with-attack-october-2019.pdf", key: "Threat COA development" },
+            { publication: "JP 3-12", file: "2018-JP-3-12-Cyberspace-Operations.pdf", key: "Joint relationships, command structure" },
+            { publication: "ADP 5-0", file: "ARN18126-ADP_5-0-000-WEB-3.pdf", key: "MDMP phases, operations process" }
+        ],
+        "Host Analyst": [
+            { publication: "FM 2-0", file: "fm2_0.pdf", key: "Analysis methodology, collection discipline" },
+            { publication: "MITRE ATT&CK", file: "getting-started-with-attack-october-2019.pdf", key: "Technique mapping, host-level tactics" }
+        ],
+        "Network Analyst": [
+            { publication: "FM 2-0", file: "fm2_0.pdf", key: "Analysis methodology, traffic collection" },
+            { publication: "MITRE ATT&CK", file: "getting-started-with-attack-october-2019.pdf", key: "Technique mapping, network-level tactics" },
+            { publication: "ATP 2-01.3", file: "ATP_2-01.3_Intelligence_Preparation_of_the_Battlefield.pdf", key: "Network terrain analysis" }
+        ]
+    }
+};
+
+/**
+ * Get doctrine references for a specific MDMP step
+ */
+function getDoctrineByStep(step) {
+    const stepNum = parseInt(step);
+    if (stepNum < 1 || stepNum > 7) {
+        return { error: "Invalid MDMP step. Must be 1-7." };
+    }
+    return doctrineReferences.mdmpSteps[stepNum] || { error: "No doctrine found for this step" };
+}
+
+/**
+ * Get doctrine references for a specific role
+ */
+function getDoctrineByRole(role) {
+    return doctrineReferences.roles[role] || { error: "Role not found. Try 'Cyber Operations Planner', 'Host Analyst', or 'Network Analyst'" };
+}
+
+/**
+ * Get all doctrine references
+ */
+function getAllDoctrine() {
+    return doctrineReferences;
 }
 
 // Create server

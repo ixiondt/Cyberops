@@ -1162,6 +1162,9 @@
                     </div>
                 </div>
             </div>
+
+            <h2 style="color: #ffffff; margin-top: 30px; margin-bottom: 20px; font-size: 20px;">📚 Doctrine References for This Operation</h2>
+            <div id="intelligence-doctrine" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;"></div>
         </div>
 
         <!-- Timeline Tab -->
@@ -1492,6 +1495,57 @@
             }
         }
 
+        // Load and display doctrine references
+        async function loadDoctrineForIntelligence() {
+            try {
+                const response = await fetch('/api/doctrine');
+                const doctrine = await response.json();
+
+                if (!doctrine.roles) {
+                    return;
+                }
+
+                const container = document.getElementById('intelligence-doctrine');
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                // Display doctrine by role
+                const roles = [
+                    'Host Analyst',
+                    'Network Analyst',
+                    'Cyber Operations Planner'
+                ];
+
+                roles.forEach(role => {
+                    const roleData = doctrine.roles[role];
+                    if (!roleData) return;
+
+                    const roleDiv = document.createElement('div');
+                    roleDiv.style.cssText = 'background: linear-gradient(135deg, #1a2332 0%, #0d1626 100%); border: 1px solid rgba(0, 102, 204, 0.3); border-radius: 8px; padding: 20px;';
+
+                    let roleHTML = `<div style="color: #0066cc; font-weight: bold; margin-bottom: 15px; font-size: 13px;">🎓 ${role}</div>`;
+
+                    if (Array.isArray(roleData)) {
+                        roleData.forEach(ref => {
+                            roleHTML += `
+                                <div style="background: rgba(0, 102, 204, 0.05); border-left: 3px solid #0066cc; padding: 10px 12px; margin-bottom: 10px; border-radius: 4px; font-size: 11px;">
+                                    <div style="color: #0066cc; font-weight: bold; margin-bottom: 4px;">${ref.publication}</div>
+                                    <div style="color: #cbd5e1;">📋 ${ref.key}</div>
+                                    <div style="color: #64b5f6; font-size: 10px; margin-top: 4px;">📁 ${ref.file}</div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    roleDiv.innerHTML = roleHTML;
+                    container.appendChild(roleDiv);
+                });
+            } catch (err) {
+                console.error('Error loading doctrine:', err);
+            }
+        }
+
         // Modal functions
         function showOperationModal(operation) {
             document.getElementById('operationModal').classList.add('show');
@@ -1537,6 +1591,7 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             console.log('CyberPlanner Dashboard Initialized');
+            loadDoctrineForIntelligence();
         });
     </script>
 </body>

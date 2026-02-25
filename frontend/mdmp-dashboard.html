@@ -652,6 +652,69 @@
             background: rgba(0, 102, 204, 0.4);
             box-shadow: 0 0 20px rgba(0, 102, 204, 0.3);
         }
+
+        /* DOCTRINE REFERENCE PANEL */
+        .doctrine-panel {
+            background: linear-gradient(135deg, #1a1f3a 0%, #0d1626 100%);
+            border: 1px solid rgba(100, 150, 200, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .doctrine-panel h3 {
+            color: #0066cc;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doctrine-reference {
+            background: rgba(0, 102, 204, 0.05);
+            border-left: 3px solid #0066cc;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .doctrine-publication {
+            color: #0066cc;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .doctrine-section {
+            color: #cbd5e1;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .doctrine-cyber {
+            color: #94a3b8;
+            font-style: italic;
+            font-size: 11px;
+        }
+
+        .doctrine-link {
+            color: #0066cc;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .doctrine-link:hover {
+            color: #00d4ff;
+        }
+
+        @media (max-width: 1200px) {
+            .doctrine-panel {
+                position: static;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1315,6 +1378,14 @@
             <div id="export-status" style="color: #94a3b8; font-size: 11px; margin-top: 15px; display: none;"></div>
         </div>
 
+        <!-- DOCTRINE REFERENCES SECTION -->
+        <div style="background: linear-gradient(135deg, #1a2332 0%, #0d1626 100%); border: 2px solid rgba(0, 102, 204, 0.3); border-radius: 12px; padding: 25px; margin-bottom: 40px;">
+            <h3 style="color: #0066cc; margin-bottom: 20px; font-size: 16px;">📚 Doctrine References for This MDMP</h3>
+            <p style="color: #cbd5e1; font-size: 12px; margin-bottom: 20px;">Authoritative doctrine sources grounding each planning step.</p>
+
+            <div id="doctrine-by-step" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;"></div>
+        </div>
+
         <!-- Navigation -->
         <div class="nav-buttons">
             <a href="/dashboard.html" class="nav-button">← Back to Operations Dashboard</a>
@@ -1323,6 +1394,55 @@
     </div>
 
     <script>
+        // Load and display doctrine references
+        async function loadDoctrineReferences() {
+            try {
+                const response = await fetch('/api/doctrine');
+                const doctrine = await response.json();
+
+                if (!doctrine.mdmpSteps) {
+                    console.error('Invalid doctrine data');
+                    return;
+                }
+
+                const container = document.getElementById('doctrine-by-step');
+                container.innerHTML = '';
+
+                // Display doctrine for each MDMP step
+                for (let step = 1; step <= 7; step++) {
+                    const stepData = doctrine.mdmpSteps[step];
+                    if (!stepData) continue;
+
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = 'doctrine-panel';
+
+                    let referencesHTML = `<h3>Step ${step}: ${stepData.title}</h3>`;
+
+                    if (stepData.references && stepData.references.length > 0) {
+                        stepData.references.forEach(ref => {
+                            referencesHTML += `
+                                <div class="doctrine-reference">
+                                    <div class="doctrine-publication">${ref.publication}</div>
+                                    <div class="doctrine-section">📄 ${ref.section}</div>
+                                    <div class="doctrine-cyber">💡 ${ref.cyber}</div>
+                                    <div style="margin-top: 6px; font-size: 10px; color: #64b5f6;">
+                                        📁 ${ref.file}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    stepDiv.innerHTML = referencesHTML;
+                    container.appendChild(stepDiv);
+                }
+            } catch (err) {
+                console.error('Error loading doctrine references:', err);
+                const container = document.getElementById('doctrine-by-step');
+                container.innerHTML = '<div style="color: #ef4444; padding: 10px;">Error loading doctrine references. Check server connection.</div>';
+            }
+        }
+
         function showStepDetails(step) {
             console.log('MDMP Step ' + step + ' details clicked');
             // Can be expanded to show detailed modal for each step
@@ -1379,6 +1499,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('MDMP Dashboard initialized');
             console.log('Word export functionality ready (docx library required)');
+            loadDoctrineReferences();
         });
     </script>
 </body>
