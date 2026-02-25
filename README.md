@@ -78,16 +78,18 @@ CyberOpsPlanner/
 ├── server.js                           # Start here: node server.js
 ├── CLAUDE.md                           # Claude Code system prompt
 ├── README.md                           # This file
-├── [HTML dashboards]                   # index.html, mdmp-dashboard.html, etc.
-├── css/ & js/                          # Dashboard styling and JavaScript
+├── [HTML dashboards in frontend/]      # index.html, mdmp-dashboard.html, etc.
+├── frontend/                           # Dashboard files and assets
+│   ├── css/ & js/                      # Dashboard styling and JavaScript
+│   └── [HTML dashboards]
 ├── package.json                        # Node.js dependencies
-├── skill-*.yaml                        # Claude AI role definitions
 │
 ├── docs/                               # Complete documentation
 │   ├── DOCUMENTATION_INDEX.md          # Master navigation
-│   ├── guides/                         # User guides
-│   ├── technical/                      # Technical architecture
-│   ├── roles/                          # Role definitions
+│   ├── guides/                         # User guides by audience
+│   ├── technical/                      # Technical architecture & SOPs
+│   ├── roles/                          # Role switching guide
+│   ├── personnel/                      # Claude AI role definitions (YAML)
 │   ├── doctrine/                       # Authoritative doctrine files
 │   ├── POAMs/                          # NIST 800-171 guidance
 │   └── templates/                      # SITREP, briefing templates
@@ -102,17 +104,22 @@ CyberOpsPlanner/
 
 ## Three Specialized AI Roles
 
+Role definitions located in `docs/personnel/` and auto-loaded by Claude Code:
+
 1. **Cyber Operations Planner** (default)
    - MDMP planning, running estimates, COA analysis, cyber effects integration
    - Doctrine-grounded (ADP 5-0, FM 3-12, JP 3-12)
+   - File: [skill-cyberopsplanner.yaml](./docs/personnel/skill-cyberopsplanner.yaml)
 
 2. **17C Host Analyst**
    - Endpoint forensics, artifact analysis, forensic timelines, baseline deviations
    - Incident response triage and detection support
+   - File: [skill-host-analyst.yaml](./docs/personnel/skill-host-analyst.yaml)
 
 3. **17C Network Analyst**
    - Traffic pattern analysis, beaconing/C2 detection, lateral movement assessment
    - Detection logic and network architecture analysis
+   - File: [skill-network-analyst.yaml](./docs/personnel/skill-network-analyst.yaml)
 
 **Switch roles anytime:**
 ```
@@ -121,7 +128,7 @@ CyberOpsPlanner/
 "Back to planner — develop threat COA"
 ```
 
-See [docs/roles/ROLES.md](./docs/roles/ROLES.md) for full documentation.
+See [docs/roles/ROLES.md](./docs/roles/ROLES.md) for role switching guide and [docs/personnel/](./docs/personnel/) for role definitions.
 
 ---
 
