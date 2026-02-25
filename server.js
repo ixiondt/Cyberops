@@ -200,7 +200,7 @@ function getMDMPProducts(opId, step = null) {
 }
 
 /**
- * Get all POAMs for an operation
+ * Get all POAMs for an operation (NIST SP 800-171 compliant)
  */
 function getPOAMs(opId) {
     try {
@@ -219,27 +219,65 @@ function getPOAMs(opId) {
             const stat = fs.statSync(filePath);
             const content = fs.readFileSync(filePath, 'utf8');
 
-            // Extract metadata
-            let title = '';
-            let status = 'open';
+            // Extract metadata from NIST metadata block
+            const metadataRegex = /<!-- NIST SP 800-171 POA&M METADATA\n([\s\S]*?)\n-->/;
+            let weakness = '';
+            let nistControl = '';
+            let responsibleOrganization = '';
+            let scheduledCompletionDate = '';
+            let status = 'ongoing';
             let priority = 'medium';
-            let owner = '';
+            let weaknessIdentification = '';
 
-            const lines = content.split('\n');
-            for (let i = 0; i < Math.min(20, lines.length); i++) {
-                const line = lines[i];
-                if (line.includes('**Title:**')) title = line.split('**Title:**')[1]?.trim() || '';
-                if (line.includes('**Status:**')) status = line.split('**Status:**')[1]?.trim() || 'open';
-                if (line.includes('**Priority:**')) priority = line.split('**Priority:**')[1]?.trim() || 'medium';
-                if (line.includes('**Owner:**')) owner = line.split('**Owner:**')[1]?.trim() || '';
+            const metadataMatch = content.match(metadataRegex);
+            if (metadataMatch) {
+                const metadataContent = metadataMatch[1];
+                const lines = metadataContent.split('\n');
+
+                lines.forEach(line => {
+                    const trimmed = line.trim();
+                    if (trimmed.startsWith('weakness:')) weakness = line.split(':')[1]?.trim() || '';
+                    if (trimmed.startsWith('nistControl:')) nistControl = line.split(':')[1]?.trim() || '';
+                    if (trimmed.startsWith('responsibleOrganization:')) responsibleOrganization = line.split(':')[1]?.trim() || '';
+                    if (trimmed.startsWith('scheduledCompletionDate:')) scheduledCompletionDate = line.split(':')[1]?.trim() || '';
+                    if (trimmed.startsWith('status:')) status = line.split(':')[1]?.trim() || 'ongoing';
+                    if (trimmed.startsWith('priority:')) priority = line.split(':')[1]?.trim() || 'medium';
+                    if (trimmed.startsWith('weaknessIdentification:')) weaknessIdentification = line.split(':')[1]?.trim() || '';
+                });
+            } else {
+                // Fallback: extract from markdown content (for old format)
+                const lines = content.split('\n');
+                for (let i = 0; i < Math.min(30, lines.length); i++) {
+                    const line = lines[i];
+                    if (line.startsWith('# POA&M:')) weakness = line.replace(/^# POA&M:\s*/, '').trim();
+                    if (line.includes('**Title:**')) weakness = line.split('**Title:**')[1]?.trim() || weakness;
+                    if (line.includes('**Status:**')) status = line.split('**Status:**')[1]?.trim().replace(/[✅🔄]/g, '').trim() || 'ongoing';
+                    if (line.includes('**Severity:**')) priority = line.split('**Severity:**')[1]?.trim().replace(/[🔴🟠🟡🟢]/g, '').trim().toLowerCase() || 'medium';
+                    if (line.includes('**Control:**')) nistControl = line.split('**Control:**')[1]?.trim() || '';
+                    if (line.includes('**Weakness:**')) weakness = line.split('**Weakness:**')[1]?.trim() || weakness;
+                    if (line.includes('**Responsible Organization:**')) responsibleOrganization = line.split('**Responsible Organization:**')[1]?.trim() || '';
+                    if (line.includes('**Target Remediation:**')) scheduledCompletionDate = line.split('**Target Remediation:**')[1]?.trim() || '';
+                }
             }
 
+            // Generate title from weakness or filename
+            const title = weakness || file.replace(/^POAM-\d+_/, '').replace('.md', '');
+            const dueDate = scheduledCompletionDate;
+            const owner = responsibleOrganization;
+
             poams.push({
-                id: path.basename(file, '.md'),
-                title: title || file.replace('.md', ''),
-                status,
-                priority,
-                owner,
+                id: path.basename(file, '.md').split('_')[0], // Extract POAM-###
+                title: title,
+                weakness: weakness,
+                nistControl: nistControl,
+                responsibleOrganization: responsibleOrganization,
+                scheduledCompletionDate: scheduledCompletionDate,
+                weaknessIdentification: weaknessIdentification,
+                status: status,
+                priority: priority,
+                owner: owner,
+                dueDate: dueDate,
+                description: weakness,
                 created: stat.birthtime.toISOString(),
                 lastUpdated: stat.mtime.toISOString(),
                 filePath: path.relative(OPERATIONS_DIR, filePath)
@@ -321,7 +359,7 @@ function getIncidents(opId) {
 }
 
 /**
- * Create a new POAM file
+ * Create a new POAM file (NIST SP 800-171 compliant)
  */
 function createPOAM(opId, poamData) {
     try {
@@ -340,37 +378,100 @@ function createPOAM(opId, poamData) {
         }, 0);
 
         const poamId = `POAM-${String(maxId + 1).padStart(3, '0')}`;
-        const filename = `${poamId}_${poamData.title.replace(/\s+/g, '_').substring(0, 30)}.md`;
+
+        // Use weakness field as filename base (NIST standard)
+        const filenameSafe = (poamData.weakness || poamData.title || 'POAM')
+            .replace(/\s+/g, '_')
+            .replace(/[^a-zA-Z0-9_-]/g, '')
+            .substring(0, 40);
+        const filename = `${poamId}_${filenameSafe}.md`;
         const filePath = path.join(poamDir, filename);
 
+        // Create POAM content with NIST SP 800-171 metadata
+        const now = new Date().toISOString();
+        const today = now.split('T')[0];
+
+        const metadata = {
+            weakness: poamData.weakness || 'TBD',
+            responsibleOrganization: poamData.responsibleOrganization || 'TBD',
+            nistControl: poamData.nistControl || 'TBD',
+            scheduledCompletionDate: poamData.scheduledCompletionDate || today,
+            weaknessIdentification: poamData.weaknessIdentification || 'assessment',
+            status: poamData.status || 'ongoing',
+            priority: poamData.priority || 'medium',
+            resourceEstimate: poamData.resourceEstimate || '',
+            milestones: poamData.milestones || '',
+            changesNote: poamData.changesNote || '',
+            createdDate: today,
+            lastUpdatedDate: today
+        };
+
+        // Build metadata comment block
+        let metadataBlock = '<!-- NIST SP 800-171 POA&M METADATA\n';
+        Object.entries(metadata).forEach(([key, value]) => {
+            if (value) {
+                if (key === 'milestones' && Array.isArray(value)) {
+                    metadataBlock += `${key}:\n`;
+                    value.forEach(m => metadataBlock += `  - ${m}\n`);
+                } else if (key === 'milestones' && typeof value === 'string' && value.includes('\n')) {
+                    metadataBlock += `${key}:\n`;
+                    value.split('\n').forEach(m => {
+                        if (m.trim()) metadataBlock += `  - ${m.trim()}\n`;
+                    });
+                } else {
+                    metadataBlock += `${key}: ${value}\n`;
+                }
+            }
+        });
+        metadataBlock += '-->\n\n';
+
         // Create POAM content
-        const now = new Date().toISOString().split('T')[0];
-        const content = `# ${poamData.title}
+        const content = `${metadataBlock}# POA&M: ${poamData.weakness || 'New Finding'}
 
-**POAM ID:** ${poamId}
-**Title:** ${poamData.title}
-**Status:** ${poamData.status || 'open'}
-**Priority:** ${poamData.priority || 'medium'}
-**Owner:** ${poamData.owner || 'TBD'}
-**Created:** ${now}
-**Due Date:** ${poamData.dueDate || 'TBD'}
+## NIST SP 800-171 Compliance
 
-## Description
-
-${poamData.description || 'Description of action required and milestone.'}
-
-## Milestones
-
-- [ ] Milestone 1
-- [ ] Milestone 2
-- [ ] Milestone 3
-
-## Notes
-
-${poamData.notes || 'Additional notes and tracking information.'}
+**Control:** ${poamData.nistControl || 'TBD'}
+**Severity:** ${poamData.priority === 'critical' ? '🔴' : poamData.priority === 'high' ? '🟠' : poamData.priority === 'medium' ? '🟡' : '🟢'} ${poamData.priority?.toUpperCase() || 'MEDIUM'}
+**Weakness:** ${poamData.weakness || 'TBD'}
 
 ---
-Generated by CyberOpsPlanner Dashboard | ${now}
+
+## Executive Summary
+
+**POAM ID:** ${poamId}
+**Responsible Organization:** ${poamData.responsibleOrganization || 'TBD'}
+**Status:** ${poamData.status === 'complete' ? '✅ Complete' : '🔄 Ongoing'}
+**Target Remediation:** ${poamData.scheduledCompletionDate || 'TBD'}
+
+---
+
+## Weakness Description
+
+${poamData.weakness || 'Description of the control requirement not met.'}
+
+---
+
+## Remediation Plan
+
+**Responsible Organization:** ${poamData.responsibleOrganization || 'TBD'}
+**Resource Estimate:** ${poamData.resourceEstimate || 'TBD'}
+**Target Completion:** ${poamData.scheduledCompletionDate || 'TBD'}
+
+### Milestones
+
+${poamData.milestones ? poamData.milestones.split('\n').map(m => m.trim()).filter(m => m).map(m => `- ${m}`).join('\n') : '- [ ] Milestone 1\n- [ ] Milestone 2\n- [ ] Milestone 3'}
+
+### Changes to Original Plan
+
+${poamData.changesNote || 'No changes to original milestones'}
+
+---
+
+**Identification Method:** ${poamData.weaknessIdentification || 'Assessment'}
+**Created:** ${today}
+**Last Updated:** ${today}
+
+UNCLASSIFIED // FOUO | CyberOpsPlanner | ${today}
 `;
 
         fs.writeFileSync(filePath, content, 'utf8');
@@ -392,7 +493,7 @@ Generated by CyberOpsPlanner Dashboard | ${now}
 }
 
 /**
- * Update a POAM file
+ * Update a POAM file (NIST SP 800-171 compliant)
  */
 function updatePOAM(opId, poamId, poamData) {
     try {
@@ -410,40 +511,99 @@ function updatePOAM(opId, poamId, poamData) {
         }
 
         const filePath = path.join(poamDir, poamFile);
-        const content = fs.readFileSync(filePath, 'utf8');
+        let content = fs.readFileSync(filePath, 'utf8');
 
-        // Update specific fields
-        let updatedContent = content;
+        // Update metadata block if present
+        const metadataRegex = /<!-- NIST SP 800-171 POA&M METADATA\n([\s\S]*?)\n-->/;
+        const today = new Date().toISOString().split('T')[0];
+
+        if (metadataRegex.test(content)) {
+            // Update existing metadata block
+            let metadataBlock = '<!-- NIST SP 800-171 POA&M METADATA\n';
+
+            // Preserve existing values but update changed ones
+            Object.entries(poamData).forEach(([key, value]) => {
+                if (value) {
+                    if (key === 'milestones' && Array.isArray(value)) {
+                        metadataBlock += `${key}:\n`;
+                        value.forEach(m => metadataBlock += `  - ${m}\n`);
+                    } else if (key === 'milestones' && typeof value === 'string' && value.includes('\n')) {
+                        metadataBlock += `${key}:\n`;
+                        value.split('\n').forEach(m => {
+                            if (m.trim()) metadataBlock += `  - ${m.trim()}\n`;
+                        });
+                    } else if (key !== 'createdDate') { // Don't change created date
+                        metadataBlock += `${key}: ${value}\n`;
+                    }
+                }
+            });
+
+            // Always update lastUpdatedDate
+            metadataBlock += `lastUpdatedDate: ${today}\n`;
+            metadataBlock += '-->\n';
+
+            content = content.replace(metadataRegex, metadataBlock);
+        }
+
+        // Update specific content sections for NIST fields
+        if (poamData.weakness) {
+            content = content.replace(
+                /# POA&M:.+/,
+                `# POA&M: ${poamData.weakness}`
+            );
+            content = content.replace(
+                /\*\*Weakness:\*\*.+/,
+                `**Weakness:** ${poamData.weakness}`
+            );
+        }
+
+        if (poamData.nistControl) {
+            content = content.replace(
+                /\*\*Control:\*\*.+/,
+                `**Control:** ${poamData.nistControl}`
+            );
+        }
 
         if (poamData.status) {
-            updatedContent = updatedContent.replace(
-                /\*\*Status:\*\*.+/,
-                `**Status:** ${poamData.status}`
+            const statusIcon = poamData.status === 'complete' ? '✅' : '🔄';
+            const statusText = poamData.status === 'complete' ? 'Complete' : 'Ongoing';
+            content = content.replace(
+                /\*\*Status:\*\* .+/,
+                `**Status:** ${statusIcon} ${statusText}`
             );
         }
 
         if (poamData.priority) {
-            updatedContent = updatedContent.replace(
-                /\*\*Priority:\*\*.+/,
-                `**Priority:** ${poamData.priority}`
+            const priorityIcon = poamData.priority === 'critical' ? '🔴' :
+                                poamData.priority === 'high' ? '🟠' :
+                                poamData.priority === 'medium' ? '🟡' : '🟢';
+            content = content.replace(
+                /\*\*Severity:\*\* .+/,
+                `**Severity:** ${priorityIcon} ${poamData.priority.toUpperCase()}`
             );
         }
 
-        if (poamData.owner) {
-            updatedContent = updatedContent.replace(
-                /\*\*Owner:\*\*.+/,
-                `**Owner:** ${poamData.owner}`
+        if (poamData.responsibleOrganization) {
+            content = content.replace(
+                /\*\*Responsible Organization:\*\*.+/,
+                `**Responsible Organization:** ${poamData.responsibleOrganization}`
             );
         }
 
-        if (poamData.dueDate) {
-            updatedContent = updatedContent.replace(
-                /\*\*Due Date:\*\*.+/,
-                `**Due Date:** ${poamData.dueDate}`
+        if (poamData.scheduledCompletionDate) {
+            content = content.replace(
+                /\*\*Target Remediation:\*\*.+/,
+                `**Target Remediation:** ${poamData.scheduledCompletionDate}`
             );
         }
 
-        fs.writeFileSync(filePath, updatedContent, 'utf8');
+        // Update last modified timestamp in footer
+        content = content.replace(
+            /CyberOpsPlanner \| \d{4}-\d{2}-\d{2}$/m,
+            `CyberOpsPlanner | ${today}`
+        );
+
+        fs.writeFileSync(filePath, content, 'utf8');
 
         return {
             success: true,
@@ -487,6 +647,150 @@ function deletePOAM(opId, poamId) {
         };
     } catch (err) {
         console.error(`Error deleting POAM for ${opId}:`, err);
+        return {
+            success: false,
+            error: err.message
+        };
+    }
+}
+
+/**
+ * Create a new MDMP product (deliverable)
+ */
+function createMDMPProduct(opId, productData) {
+    try {
+        const step = productData.step || 1;
+
+        // Map step to folder
+        const stepFolderMap = {
+            1: 'PLANNING', 2: 'INTELLIGENCE', 3: 'PLANNING', 4: 'PLANNING',
+            5: 'PLANNING', 6: 'PLANNING', 7: 'OPERATIONS'
+        };
+        const stepNames = {
+            1: 'Receipt of Mission', 2: 'Mission Analysis', 3: 'COA Development',
+            4: 'COA Analysis', 5: 'COA Comparison', 6: 'COA Approval', 7: 'Orders Production'
+        };
+
+        const folder = stepFolderMap[step];
+        const stepName = stepNames[step];
+
+        if (!folder) {
+            return {
+                success: false,
+                error: `Invalid MDMP step: ${step}`
+            };
+        }
+
+        const productDir = path.join(OPERATIONS_DIR, opId, folder);
+
+        // Ensure directory exists
+        if (!fs.existsSync(productDir)) {
+            fs.mkdirSync(productDir, { recursive: true });
+        }
+
+        // Generate product ID
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const productId = `MDMP-Step${step}-${dateStr}`;
+
+        // Create filename
+        const filenameSafe = (productData.title || `Deliverable-Step-${step}`)
+            .replace(/\s+/g, '_')
+            .replace(/[^a-zA-Z0-9_-]/g, '')
+            .substring(0, 40);
+        const filename = `${productId}_${filenameSafe}.md`;
+        const filePath = path.join(productDir, filename);
+
+        // Create product content
+        const content = `<!-- METADATA
+step: ${step}
+title: ${productData.title || 'Untitled Deliverable'}
+created: ${dateStr}
+status: draft
+owner: ${productData.owner || 'TBD'}
+-->
+
+# ${productData.title || 'Untitled Deliverable'}
+
+**MDMP Step ${step}:** ${stepName}
+**Status:** Draft
+**Created:** ${dateStr}
+
+## Overview
+
+${productData.description || 'Deliverable for MDMP step ' + step}
+
+## Key Points
+
+- Point 1
+- Point 2
+- Point 3
+
+## Recommendations
+
+To be completed...
+
+---
+
+Generated by CyberOpsPlanner Dashboard | ${dateStr}
+`;
+
+        fs.writeFileSync(filePath, content, 'utf8');
+
+        return {
+            success: true,
+            id: productId,
+            filename,
+            filePath: path.relative(OPERATIONS_DIR, filePath),
+            message: `MDMP product created successfully`
+        };
+    } catch (err) {
+        console.error(`Error creating MDMP product for ${opId}:`, err);
+        return {
+            success: false,
+            error: err.message
+        };
+    }
+}
+
+/**
+ * Delete an MDMP product
+ */
+function deleteMDMPProduct(opId, productId) {
+    try {
+        // Find the product file across all folders
+        const folders = ['PLANNING', 'INTELLIGENCE', 'OPERATIONS'];
+        let filePath = null;
+
+        for (const folder of folders) {
+            const folderPath = path.join(OPERATIONS_DIR, opId, folder);
+            if (!fs.existsSync(folderPath)) continue;
+
+            const files = fs.readdirSync(folderPath);
+            const productFile = files.find(f => f.includes(productId));
+
+            if (productFile) {
+                filePath = path.join(folderPath, productFile);
+                break;
+            }
+        }
+
+        if (!filePath) {
+            return {
+                success: false,
+                error: `MDMP product ${productId} not found`
+            };
+        }
+
+        fs.unlinkSync(filePath);
+
+        return {
+            success: true,
+            id: productId,
+            message: `MDMP product deleted successfully`
+        };
+    } catch (err) {
+        console.error(`Error deleting MDMP product for ${opId}:`, err);
         return {
             success: false,
             error: err.message
@@ -1252,6 +1556,52 @@ async function handleApiRequest(pathname, req, res) {
         return;
     }
 
+    // POST /api/operations/{opId}/mdmp-products - Create new MDMP product
+    if (pathname.match(/^\/api\/operations\/[^/]+\/mdmp-products$/) && req.method === 'POST') {
+        const opId = pathname.split('/')[3];
+        let body = '';
+
+        req.on('data', chunk => {
+            body += chunk.toString();
+            if (body.length > 1024 * 1024) {
+                req.connection.destroy();
+            }
+        });
+
+        req.on('end', () => {
+            try {
+                const productData = JSON.parse(body);
+                const result = createMDMPProduct(opId, productData);
+
+                res.writeHead(result.success ? 201 : 400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(result, null, 2));
+            } catch (err) {
+                console.error('Error creating MDMP product:', err);
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: err.message }));
+            }
+        });
+        return;
+    }
+
+    // DELETE /api/operations/{opId}/mdmp-products/{productId} - Delete MDMP product
+    if (pathname.match(/^\/api\/operations\/[^/]+\/mdmp-products\/[^/]+$/) && req.method === 'DELETE') {
+        const pathParts = pathname.split('/');
+        const opId = pathParts[3];
+        const productId = pathParts[5];
+
+        try {
+            const result = deleteMDMPProduct(opId, productId);
+            res.writeHead(result.success ? 200 : 404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result, null, 2));
+        } catch (err) {
+            console.error('Error deleting MDMP product:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'API endpoint not found' }));
 }
@@ -1444,8 +1794,8 @@ const server = http.createServer((req, res) => {
     // Default to new unified dashboard (index.html)
     let filePath = pathname === '/' ? '/index.html' : pathname;
 
-    // Map URL to file path
-    const fullPath = path.join(__dirname, filePath);
+    // Map URL to file path (serve from frontend folder)
+    const fullPath = path.join(__dirname, 'frontend', filePath);
 
     // Get file extension
     const extname = String(path.extname(fullPath)).toLowerCase();

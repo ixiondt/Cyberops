@@ -751,6 +751,7 @@
             <button class="tab" onclick="switchTab('incidents')">⚠️ Incidents</button>
             <button class="tab" onclick="switchTab('intelligence')">🔍 Intelligence</button>
             <button class="tab" onclick="switchTab('timeline')">📅 Timeline</button>
+            <button class="tab" onclick="switchTab('analysis')">🧩 Analysis</button>
         </div>
 
         <!-- Overview Tab -->
@@ -1250,6 +1251,136 @@
                 </div>
             </div>
         </div>
+
+        <!-- Analysis Tab -->
+        <div id="analysis" class="tab-content">
+            <h2 style="color: #ffffff; margin-bottom: 20px; font-size: 20px;">Threat Analysis Reports</h2>
+
+            <!-- Host Analysis Section -->
+            <div style="background: rgba(220, 38, 38, 0.1); border: 2px solid #dc2626; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(220, 38, 38, 0.3); padding-bottom: 15px;">
+                    <span style="font-size: 20px;">🖥️</span>
+                    <h3 style="color: #fca5a5; font-size: 18px; margin: 0;">Host Analysis (17C Host Analyst)</h3>
+                </div>
+
+                <div class="poams-list">
+                    <div class="poam-card" style="border-left-color: #dc2626;">
+                        <div class="poam-header">
+                            <div>
+                                <div class="poam-id">HOST-ANALYSIS-001</div>
+                                <div class="poam-title">lockfile.ps1 Forensic Analysis</div>
+                            </div>
+                            <div class="poam-priority priority-critical">🔴</div>
+                        </div>
+                        <div class="poam-status">
+                            <div class="status-indicator status-in-progress"></div>
+                            <span>IN PROGRESS - Forensic Investigation</span>
+                        </div>
+                        <div class="poam-details">
+                            <strong>Host:</strong> dc2 (Domain Controller - 172.17.2.6)
+                            <br><strong>File:</strong> lockfile.ps1 (PowerShell persistence script)
+                            <br><strong>Threat Actor:</strong> APT41 (Winnti Group)
+                            <br><strong>Techniques:</strong> T1053, T1547, T1059, T1003, T1546.003
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 25%; background: linear-gradient(90deg, #dc2626, #b91c1c);"></div>
+                        </div>
+                        <div class="poam-footer">
+                            <span>Status: Forensic Collection Complete, Analysis In Progress</span>
+                            <span>Owner: CPT 173 Host Analysis</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(220, 38, 38, 0.05); border-radius: 8px; padding: 15px; margin-top: 15px;">
+                    <h4 style="color: #fca5a5; margin: 0 0 10px 0; font-size: 14px;">Host Analysis Findings</h4>
+                    <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                        <p><strong>Baseline Deviation:</strong> PowerShell script (lockfile.ps1) discovered on domain controller - not typical for DC function</p>
+                        <p><strong>Persistence Mechanism:</strong> Script pattern consistent with APT41 scheduled task/WMI subscription installation</p>
+                        <p><strong>Credential Access:</strong> High likelihood of LSASS memory access for domain credential harvesting</p>
+                        <p><strong>Lateral Movement:</strong> Confirmed WinRM from Web Server to Technical Analyst subnet</p>
+                        <p><strong>MITRE ATT&CK Mapping:</strong> Execution (T1059), Persistence (T1053/T1547), Credential Access (T1003)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Analysis Section -->
+            <div style="background: rgba(0, 212, 255, 0.1); border: 2px solid #00d4ff; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(0, 212, 255, 0.3); padding-bottom: 15px;">
+                    <span style="font-size: 20px;">🌐</span>
+                    <h3 style="color: #67e8f9; font-size: 18px; margin: 0;">Network Analysis (17C Network Analyst)</h3>
+                </div>
+
+                <div class="poams-list">
+                    <div class="poam-card" style="border-left-color: #00d4ff;">
+                        <div class="poam-header">
+                            <div>
+                                <div class="poam-id">NET-ANALYSIS-001</div>
+                                <div class="poam-title">Network Topology & Lateral Movement Assessment</div>
+                            </div>
+                            <div class="poam-priority priority-high">🟠</div>
+                        </div>
+                        <div class="poam-status">
+                            <div class="status-indicator status-in-progress"></div>
+                            <span>IN PROGRESS - Network Mapping Complete</span>
+                        </div>
+                        <div class="poam-details">
+                            <strong>Network Architecture:</strong> Two-site topology (Site 1 Core, Site 2 Workgroups)
+                            <br><strong>Key Terrain:</strong> Domain Controller (dc2), Web Server, Technical Analyst Subnet
+                            <br><strong>Choke Points:</strong> PFSense Perimeter, Site 1 Core Router
+                            <br><strong>Vulnerabilities:</strong> Missing NIDS/NDR, Segmentation gaps, EDR gaps on servers
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 40%; background: linear-gradient(90deg, #00d4ff, #0284c7);"></div>
+                        </div>
+                        <div class="poam-footer">
+                            <span>Status: Topology Analysis Complete, Detection Logic Proposed</span>
+                            <span>Owner: CPT 173 Network Analysis</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0, 212, 255, 0.05); border-radius: 8px; padding: 15px; margin-top: 15px;">
+                    <h4 style="color: #67e8f9; margin: 0 0 10px 0; font-size: 14px;">Network Threat Assessment</h4>
+                    <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                        <p><strong>Lateral Movement Pathway:</strong> 202.84.75.2 → Web Server (T1190) → Technical Analyst (T1021.006) → dc2 (T1021.002)</p>
+                        <p><strong>Network Segmentation Gaps:</strong> User networks (TA, Dev, Eng, HR, Exec, Staff) have direct L3 routes to core servers without micro-segmentation</p>
+                        <p><strong>Missing Detection Capabilities:</strong> No NIDS/NDR visible; only EDR sensors (6 total); gaps on DC, File Servers, Web Server</p>
+                        <p><strong>Data Exfiltration Pathway:</strong> Internal staging (172.17.X.X) → Site 2 Router → Site 1 Core → PFSense → Internet</p>
+                        <p><strong>OT System Risk:</strong> If OT shares network with Engineering subnet, lateral movement to OT systems possible</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MITRE ATT&CK Matrix Summary -->
+            <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid rgba(100, 150, 200, 0.3); border-radius: 12px; padding: 20px;">
+                <h3 style="color: #00d4ff; margin-bottom: 15px; font-size: 16px;">MITRE ATT&CK Technique Summary</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+                    <div style="background: rgba(220, 38, 38, 0.1); border-left: 3px solid #dc2626; padding: 12px; border-radius: 6px;">
+                        <div style="color: #fca5a5; font-weight: bold; margin-bottom: 5px;">INITIAL ACCESS</div>
+                        <div style="font-size: 12px; color: #cbd5e1;">T1190 - Exploit Public-Facing Application (Web Server)</div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Status: CONFIRMED</div>
+                    </div>
+                    <div style="background: rgba(220, 38, 38, 0.1); border-left: 3px solid #dc2626; padding: 12px; border-radius: 6px;">
+                        <div style="color: #fca5a5; font-weight: bold; margin-bottom: 5px;">LATERAL MOVEMENT</div>
+                        <div style="font-size: 12px; color: #cbd5e1;">T1021.006 - Windows Remote Management</div>
+                        <div style="font-size: 12px; color: #cbd5e1;">T1021.002 - SMB/Windows Admin Shares</div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Status: CONFIRMED / SUSPECTED</div>
+                    </div>
+                    <div style="background: rgba(220, 38, 38, 0.1); border-left: 3px solid #dc2626; padding: 12px; border-radius: 6px;">
+                        <div style="color: #fca5a5; font-weight: bold; margin-bottom: 5px;">PERSISTENCE</div>
+                        <div style="font-size: 12px; color: #cbd5e1;">T1053 - Scheduled Task</div>
+                        <div style="font-size: 12px; color: #cbd5e1;">T1547 - Boot/Logon Autostart</div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Status: SUSPECTED (lockfile.ps1)</div>
+                    </div>
+                    <div style="background: rgba(220, 38, 38, 0.1); border-left: 3px solid #dc2626; padding: 12px; border-radius: 6px;">
+                        <div style="color: #fca5a5; font-weight: bold; margin-bottom: 5px;">CREDENTIAL ACCESS</div>
+                        <div style="font-size: 12px; color: #cbd5e1;">T1003 - Credentials from Process Memory (LSASS)</div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">Status: SUSPECTED</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal for Operation Details -->
@@ -1349,10 +1480,16 @@
             tabs.forEach(tab => tab.classList.remove('active'));
 
             // Show selected tab
-            document.getElementById(tabName).classList.add('active');
+            const selectedContent = document.getElementById(tabName);
+            if (selectedContent) {
+                selectedContent.classList.add('active');
+            }
 
             // Add active class to clicked tab
-            event.target.classList.add('active');
+            const activeTab = document.querySelector(`button[onclick="switchTab('${tabName}')"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
         }
 
         // Modal functions
