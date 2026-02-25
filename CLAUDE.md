@@ -67,72 +67,32 @@ See [docs/roles/ROLES.md](./docs/roles/ROLES.md) for full role documentation and
 
 ## HOW THE SYSTEM WORKS
 
-### 1. Interactive Dashboards (Node.js Server)
+**Start dashboards:** `npm install && node server.js` → Access at `http://localhost:3000`
 
-**Start the server:**
-```bash
-npm install  # (first time only)
-node server.js
-```
+**Dashboards:**
+- **MDMP Planner:** `/mdmp-dashboard.html` — 7-step planning, products, Word export
+- **Operations:** `/` — Incidents, POAMs, network visualization, timeline
+- **Network Map:** `/network-map.html` — Threat visualization, layers, CSV I/O
+- **IR Playbooks:** `/ir-playbook-dashboard.html` — Standardized response workflows
 
-**Access dashboards:**
-- **MDMP Planning:** `http://localhost:3000/mdmp-dashboard.html` — 7-step visualization, 32+ planning products, export annexes
-- **Operations Dashboard:** `http://localhost:3000/` — Real-time incident tracking, POAMs, personnel roster, threat intelligence, timeline
-- **Network Map:** `http://localhost:3000/network-map.html` — Network threat visualization, layer switching, CSV import/export
-- **IR Playbooks:** `http://localhost:3000/ir-playbook-dashboard.html` — Standardized incident response playbooks by threat type
+**Word Export:** Click "Export" on MDMP products → AR 25-50 compliant .docx (Annex M, Annex A)
 
-### 2. Word Document Export Engine
+**Claude Code:** `claude code .` → Loads this prompt + three role YAMLs
+- `skill-cyberopsplanner.yaml` — Planner role
+- `skill-host-analyst.yaml` — Host analyst role
+- `skill-network-analyst.yaml` — Network analyst role
 
-**What it does:**
-- Converts MDMP products to AR 25-50 compliant .docx files
-- Generates Annex M (Cyber Operations) and Annex A (Task Organization)
-- Enforces military formatting (1" margins, 11-12pt fonts, UNCLASSIFIED // FOUO marking)
-- Timestamps output with operation name and export date
-
-**How to use:**
-1. Fill out MDMP planning dashboard products
-2. Click "Export Annex M" or "Export Annex A" button
-3. Browser downloads formatted Word document
-4. Ready for HQ submission
-
-### 3. Claude Code Integration
-
-**Load the system:**
-```bash
-claude code .
-```
-
-Claude automatically loads `CLAUDE.md` and the three role YAML definitions:
-- `skill-cyberopsplanner.yaml` — Cyber Operations Planner system prompt
-- `skill-host-analyst.yaml` — 17C Host Analyst system prompt
-- `skill-network-analyst.yaml` — 17C Network Analyst system prompt
-
-**Use the planner:**
-- Request cyber running estimates, COA analysis, threat assessments
-- Switch between roles for multi-perspective analysis
-- Export products to operations folder for HQ coordination
+Use for: running estimates, COA analysis, threat assessments, role switching
 
 ---
 
-## SOP & INCIDENT RESPONSE PLAYBOOKS (REFERENCE)
+## SOP & INCIDENT RESPONSE PLAYBOOKS
 
-This system integrates validated SOPs, incident response playbooks, and reference materials stored in `docs/technical/SOP/`.
+Validated playbooks in `docs/technical/SOP/` cover: Malware Triage, Malware Outbreak, Persistence, Credential Theft, Lateral Movement, Privilege Escalation, C2 Response, Data Exfil, DoS, Host Analysis, Network Analysis.
 
-**Available playbooks by threat type:**
-- **Malware & Persistence:** Malware Triage, Malware Outbreak Response, Persistence Response
-- **Attack Vectors & Lateral Movement:** Credential Theft Response, Lateral Movement Response, Privilege Escalation Response
-- **Exfiltration & C2:** Command & Control Response, Data Exfiltration Response
-- **Denial of Service:** Denial of Service Response
-- **Host Analysis:** Host Analysis Playbook, CPT Network Analyst Playbook, Top 8 Steps When Investigating Network Traffic
+**Workflow:** (1) Identify threat type, (2) Pull playbook, (3) Adapt to local OE, (4) Structure COA with playbook decision points and indicators, (5) Use procedures to inform OPORD tasks.
 
-**Playbook integration workflow:**
-1. Identify the **threat type** (malware, C2, lateral movement, exfil, etc.)
-2. Pull the corresponding **response playbook** from `docs/technical/SOP/`
-3. Adapt playbook procedures to **local environment** (mission systems, segmentation, tools available)
-4. Reference specific **decision points** and **indicators** when structuring response COAs
-5. Use playbook **containment/eradication steps** to inform **tasks and control measures** in OPORD
-
-See [docs/technical/SOP/](./docs/technical/SOP/) for complete playbook library and [docs/POAMs/GUIDANCE/NIST-800-171-POAM-GUIDE.md](./docs/POAMs/GUIDANCE/NIST-800-171-POAM-GUIDE.md) for NIST SP 800-171 POA&M integration.
+See [docs/technical/SOP/](./docs/technical/SOP/) and [NIST-800-171-POAM-GUIDE.md](./docs/POAMs/GUIDANCE/NIST-800-171-POAM-GUIDE.md).
 
 ---
 
@@ -174,26 +134,11 @@ See [docs/guides/operations/MULTI-OPERATION-GUIDE.md](./docs/guides/operations/M
 
 ---
 
-## PRODUCTS YOU CAN GENERATE (ON REQUEST)
+## PRODUCTS YOU CAN GENERATE
 
-**Planning & Estimates:**
-- Cyber running estimate (facts/assumptions/limitations/assets/RFIs)
-- Cyber staff estimate (structured per Army format)
-- Cyber annex / appendix to OPORD (tasks, control measures, reporting)
-- Cyberspace terrain / IPB assessment (physical/logical/persona layers)
-- PIR/RFI tracker and collection focus recommendations
-- Threat COAs (MLCOA/MDCOA) with indicator lists
-- Wargame outputs (friction points, shortfalls, mitigations)
-- Sync matrices and execution matrices
+**Planning:** Running estimates, staff estimates, cyber annexes, IPB assessments, PIR/RFI tracking, threat COAs (MLCOA/MDCOA), wargame outputs, sync matrices
 
-**Incident Response & Analysis:**
-- Incident Response COA (adapted playbook procedures per incident context)
-- Forensic Analysis Report (structured findings per Host Analysis Playbook)
-- Network Investigation Report (structured findings per Network Analyst Playbook)
-- Containment & Eradication Plan (playbook-derived remediation procedures)
-- Incident Timeline (correlated events with MITRE ATT&CK technique classification)
-- Threat Assessment (actor capability/intent/opportunity analysis)
-- Response Readiness Assessment (capability to execute playbook procedures)
+**Analysis:** Incident Response COAs (playbook-adapted), forensic reports (Host Playbook), network reports (Network Playbook), containment/eradication plans, incident timelines (ATT&CK-mapped), threat assessments, response readiness evaluations
 
 ---
 
