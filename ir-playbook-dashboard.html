@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IR Playbook Dashboard | CyberOpsPlanner</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(90deg, #001428 0%, #003d7a 50%, #001428 100%);
+            border-bottom: 3px solid #0066cc;
+            padding: 20px 40px;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header-content {
+            max-width: 1600px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
+        }
+        .header-title { font-size: 24px; font-weight: bold; color: #fff; }
+        .header-subtitle { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+        .header-nav { display: flex; gap: 12px; align-items: center; }
+        .nav-link {
+            color: #94a3b8; text-decoration: none; font-size: 13px;
+            padding: 6px 14px; border-radius: 6px;
+            border: 1px solid rgba(100,150,200,0.2);
+            transition: all 0.2s;
+        }
+        .nav-link:hover { color: #00d4ff; border-color: #00d4ff; background: rgba(0,212,255,0.05); }
+        .header-stats { display: flex; gap: 20px; }
+        .stat-box { background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(100,200,255,0.3); text-align: center; }
+        .stat-number { font-size: 22px; font-weight: bold; color: #00d4ff; }
+        .stat-label { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 25px 20px; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 25px; border-bottom: 2px solid rgba(100,150,200,0.2); overflow-x: auto; }
+        .tab {
+            padding: 12px 22px; border: none; background: transparent;
+            color: #94a3b8; cursor: pointer; font-size: 14px; font-weight: 500;
+            border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap;
+        }
+        .tab:hover { color: #00d4ff; background: rgba(0,212,255,0.05); }
+        .tab.active { color: #00d4ff; border-bottom-color: #00d4ff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Filters */
+        .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .filter-bar input, .filter-bar select {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(100,150,200,0.3);
+            color: #e2e8f0; padding: 8px 14px; border-radius: 6px; font-size: 13px;
+        }
+        .filter-bar input { min-width: 220px; }
+        .filter-bar input::placeholder { color: #64748b; }
+        .filter-bar select option { background: #1e293b; }
+
+        /* Playbook Grid */
+        .pb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+        .pb-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(100,150,200,0.25); border-radius: 10px;
+            padding: 20px; cursor: pointer; transition: all 0.3s;
+        }
+        .pb-card:hover { border-color: #0066cc; box-shadow: 0 6px 20px rgba(0,102,204,0.2); transform: translateY(-3px); }
+        .pb-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .pb-id { font-size: 11px; color: #64748b; font-family: monospace; }
+        .pb-cat-badge {
+            font-size: 10px; font-weight: bold; text-transform: uppercase;
+            padding: 3px 8px; border-radius: 4px;
+        }
+        .cat-malware { background: rgba(220,38,38,0.2); color: #fca5a5; border: 1px solid rgba(220,38,38,0.4); }
+        .cat-movement { background: rgba(234,88,12,0.2); color: #fdba74; border: 1px solid rgba(234,88,12,0.4); }
+        .cat-exfil { background: rgba(168,85,247,0.2); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.4); }
+        .cat-access { background: rgba(37,99,235,0.2); color: #93c5fd; border: 1px solid rgba(37,99,235,0.4); }
+        .cat-disruption { background: rgba(217,119,6,0.2); color: #fcd34d; border: 1px solid rgba(217,119,6,0.4); }
+        .cat-process { background: rgba(5,150,105,0.2); color: #6ee7b7; border: 1px solid rgba(5,150,105,0.4); }
+        .cat-cloud { background: rgba(14,165,233,0.2); color: #7dd3fc; border: 1px solid rgba(14,165,233,0.4); }
+        .cat-ot { background: rgba(180,83,9,0.2); color: #fbbf24; border: 1px solid rgba(180,83,9,0.4); }
+        .pb-name { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 6px; }
+        .pb-lead { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+        .pb-lead span { color: #00d4ff; }
+        .pb-desc { font-size: 12px; color: #64748b; line-height: 1.5; }
+        .pb-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+        .pb-tag { font-size: 10px; background: rgba(100,116,139,0.2); color: #94a3b8; padding: 2px 7px; border-radius: 3px; }
+        .pb-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-sm {
+            padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 500;
+            cursor: pointer; border: none; transition: all 0.2s;
+        }
+        .btn-view { background: rgba(0,102,204,0.2); color: #60a5fa; border: 1px solid rgba(0,102,204,0.4); }
+        .btn-view:hover { background: rgba(0,102,204,0.4); }
+        .btn-activate { background: rgba(22,163,74,0.2); color: #4ade80; border: 1px solid rgba(22,163,74,0.4); }
+        .btn-activate:hover { background: rgba(22,163,74,0.4); }
+
+        /* Active Response */
+        .active-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-primary {
+            background: linear-gradient(135deg, #0066cc, #0044aa);
+            color: #fff; border: none; padding: 10px 20px; border-radius: 8px;
+            cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;
+        }
+        .btn-primary:hover { background: linear-gradient(135deg, #0080ff, #0055cc); }
+        .btn-danger { background: rgba(220,38,38,0.2); color: #fca5a5; border: 1px solid rgba(220,38,38,0.4); }
+        .btn-danger:hover { background: rgba(220,38,38,0.4); }
+        .incidents-list { display: flex; flex-direction: column; gap: 16px; }
+        .incident-card {
+            background: rgba(30,41,59,0.8); border: 1px solid rgba(100,150,200,0.25);
+            border-radius: 10px; padding: 20px;
+        }
+        .incident-card.cat1 { border-left: 4px solid #dc2626; }
+        .incident-card.cat2 { border-left: 4px solid #ea580c; }
+        .incident-card.cat3 { border-left: 4px solid #ca8a04; }
+        .incident-card.cat4 { border-left: 4px solid #16a34a; }
+        .inc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+        .inc-title { font-size: 16px; font-weight: 600; color: #f1f5f9; }
+        .inc-meta { font-size: 12px; color: #64748b; margin-top: 3px; }
+        .inc-badges { display: flex; gap: 8px; align-items: center; }
+        .cat-badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .cat1-b { background: #dc2626; color: #fff; }
+        .cat2-b { background: #ea580c; color: #fff; }
+        .cat3-b { background: #ca8a04; color: #fff; }
+        .cat4-b { background: #16a34a; color: #fff; }
+        /* 7-step progress */
+        .steps-progress { display: flex; gap: 6px; margin: 14px 0; flex-wrap: wrap; }
+        .step-pill {
+            display: flex; align-items: center; gap: 5px;
+            padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 500;
+            border: 1px solid rgba(100,150,200,0.2); cursor: pointer; transition: all 0.2s;
+            background: rgba(30,41,59,0.5); color: #64748b;
+        }
+        .step-pill.complete { background: rgba(22,163,74,0.2); color: #4ade80; border-color: rgba(22,163,74,0.5); }
+        .step-pill.active { background: rgba(0,102,204,0.3); color: #60a5fa; border-color: #0066cc; }
+        .step-pill.pending { background: rgba(30,41,59,0.3); color: #475569; }
+        .step-num { font-weight: bold; font-size: 10px; }
+        .inc-notes { width: 100%; margin-top: 8px; background: rgba(15,23,42,0.5); border: 1px solid rgba(100,150,200,0.2); color: #cbd5e1; padding: 8px; border-radius: 6px; font-size: 12px; resize: vertical; min-height: 60px; }
+        .inc-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #475569; }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #1e293b; border: 1px solid rgba(100,150,200,0.3); border-radius: 12px; padding: 28px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+        .modal-title { font-size: 18px; font-weight: bold; color: #f1f5f9; margin-bottom: 20px; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; font-weight: 500; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; background: rgba(15,23,42,0.6); border: 1px solid rgba(100,150,200,0.3);
+            color: #e2e8f0; padding: 9px 12px; border-radius: 6px; font-size: 13px;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-group select option { background: #1e293b; }
+        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .btn-cancel { background: rgba(100,116,139,0.2); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+
+        /* Team */
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+        .entity-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(100,150,200,0.25); border-radius: 10px; padding: 22px;
+        }
+        .entity-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+        .entity-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: #fff; flex-shrink: 0; }
+        .entity-name { font-size: 15px; font-weight: 600; color: #f1f5f9; }
+        .entity-role { font-size: 11px; color: #64748b; margin-top: 2px; }
+        .entity-section { margin-top: 10px; }
+        .entity-section-title { font-size: 10px; text-transform: uppercase; color: #475569; letter-spacing: 0.05em; margin-bottom: 6px; font-weight: 600; }
+        .entity-pbs { display: flex; flex-wrap: wrap; gap: 5px; }
+        .entity-pb { font-size: 10px; background: rgba(100,116,139,0.15); color: #94a3b8; padding: 2px 7px; border-radius: 3px; font-family: monospace; }
+        .authority-list { font-size: 12px; color: #94a3b8; line-height: 1.7; }
+        .authority-list li { margin-left: 14px; }
+
+        /* 7-Step Reference */
+        .steps-ref { display: flex; flex-direction: column; gap: 16px; }
+        .step-card {
+            background: rgba(30,41,59,0.7); border: 1px solid rgba(100,150,200,0.2);
+            border-radius: 10px; padding: 20px; border-left: 4px solid;
+        }
+        .step-card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+        .step-num-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; flex-shrink: 0; }
+        .step-title { font-size: 16px; font-weight: 600; color: #f1f5f9; }
+        .step-subtitle { font-size: 12px; color: #64748b; margin-top: 2px; }
+        .step-body { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .step-col-title { font-size: 11px; text-transform: uppercase; color: #475569; margin-bottom: 6px; font-weight: 600; letter-spacing: 0.05em; }
+        .step-items { font-size: 12px; color: #94a3b8; line-height: 1.8; }
+        .step-items li { margin-left: 14px; }
+        @media(max-width:640px) { .step-body { grid-template-columns: 1fr; } }
+
+        /* Decision Matrix */
+        .matrix-wrap { overflow-x: auto; }
+        .matrix-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 700px; }
+        .matrix-table th { background: rgba(0,60,120,0.4); color: #93c5fd; padding: 10px 12px; text-align: left; border-bottom: 2px solid rgba(100,150,200,0.3); white-space: nowrap; }
+        .matrix-table td { padding: 9px 12px; border-bottom: 1px solid rgba(100,150,200,0.1); color: #cbd5e1; vertical-align: top; }
+        .matrix-table tr:hover td { background: rgba(0,102,204,0.08); }
+        .matrix-table .na { color: #334155; }
+        .matrix-table .req { color: #4ade80; font-weight: 500; }
+        .matrix-table .cond { color: #fbbf24; }
+        .section-heading { font-size: 16px; font-weight: 600; color: #93c5fd; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(100,150,200,0.2); }
+
+        /* Playbook Viewer Modal */
+        .pb-viewer { max-width: 800px; width: 95vw; }
+        .pb-viewer-body { background: rgba(15,23,42,0.5); border-radius: 8px; padding: 16px; margin-top: 12px; font-size: 13px; line-height: 1.7; color: #cbd5e1; white-space: pre-wrap; font-family: monospace; max-height: 60vh; overflow-y: auto; }
+        .loading { color: #64748b; text-align: center; padding: 40px; }
+        .notification { position: fixed; bottom: 20px; right: 20px; background: rgba(22,163,74,0.9); color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px; z-index: 999; display: none; }
+        .notification.error { background: rgba(220,38,38,0.9); }
+        .notification.show { display: block; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <div>
+            <div class="header-title">IR Playbook Dashboard</div>
+            <div class="header-subtitle">UNCLASSIFIED // FOUO &nbsp;|&nbsp; Incident Response Playbook Library &nbsp;|&nbsp; 7-Step Framework &nbsp;|&nbsp; CJCSM 6510.01B</div>
+        </div>
+        <div class="header-nav">
+            <a href="/" class="nav-link">Ops Dashboard</a>
+            <a href="/mdmp-dashboard.html" class="nav-link">MDMP Planner</a>
+            <a href="/network-map.html" class="nav-link">Network Map</a>
+        </div>
+        <div class="header-stats">
+            <div class="stat-box"><div class="stat-number">18</div><div class="stat-label">Playbooks</div></div>
+            <div class="stat-box"><div class="stat-number" id="active-count">0</div><div class="stat-label">Active Responses</div></div>
+            <div class="stat-box"><div class="stat-number">9</div><div class="stat-label">IR Entities</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="tabs">
+        <button class="tab active" data-tab="library">Playbook Library</button>
+        <button class="tab" data-tab="active">Active Response</button>
+        <button class="tab" data-tab="team">IR Team Entities</button>
+        <button class="tab" data-tab="steps">7-Step Reference</button>
+        <button class="tab" data-tab="matrix">Decision Matrix</button>
+    </div>
+
+    <!-- TAB 1: LIBRARY -->
+    <div class="tab-content active" id="tab-library">
+        <div class="filter-bar">
+            <input type="text" id="pb-search" placeholder="Search playbooks...">
+            <select id="pb-filter-cat">
+                <option value="">All Categories</option>
+                <option value="malware">Malware</option>
+                <option value="movement">Lateral Movement / Persistence</option>
+                <option value="exfil">Exfiltration / C2</option>
+                <option value="access">Access / Credential</option>
+                <option value="disruption">Disruption / DoS</option>
+                <option value="cloud">Cloud / SaaS</option>
+                <option value="ot">OT / ICS</option>
+                <option value="process">Process / SOP</option>
+            </select>
+            <select id="pb-filter-lead">
+                <option value="">All Leads</option>
+                <option value="Host Analyst">Host Analyst</option>
+                <option value="Network Analyst">Network Analyst</option>
+                <option value="Incident Commander">IC / Mission OIC</option>
+                <option value="S-2">S-2 / Intel</option>
+                <option value="Legal">Legal / JAG</option>
+            </select>
+        </div>
+        <div class="pb-grid" id="pb-grid"></div>
+    </div>
+
+    <!-- TAB 2: ACTIVE RESPONSE -->
+    <div class="tab-content" id="tab-active">
+        <div class="active-header">
+            <div>
+                <div style="font-size:18px;font-weight:600;color:#f1f5f9;">Active Incident Response Tracker</div>
+                <div style="font-size:12px;color:#64748b;margin-top:4px;">Track progress through the 7-step framework for each active incident</div>
+            </div>
+            <button class="btn-primary" onclick="openNewIncident()">+ New Incident</button>
+        </div>
+        <div class="incidents-list" id="incidents-list">
+            <div class="empty-state">
+                <div class="empty-icon">🛡️</div>
+                <p>No active incidents. Click <strong>+ New Incident</strong> to begin tracking a response.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: TEAM ENTITIES -->
+    <div class="tab-content" id="tab-team">
+        <div style="margin-bottom:16px;font-size:13px;color:#64748b;">9 standardized IR team entities with assigned playbooks and authority boundaries.</div>
+        <div class="team-grid" id="team-grid"></div>
+    </div>
+
+    <!-- TAB 4: 7-STEP REFERENCE -->
+    <div class="tab-content" id="tab-steps">
+        <div style="margin-bottom:16px;font-size:13px;color:#64748b;">Quick reference for each step — key actions, responsible entities, outputs, and decision authority.</div>
+        <div class="steps-ref" id="steps-ref"></div>
+    </div>
+
+    <!-- TAB 5: DECISION MATRIX -->
+    <div class="tab-content" id="tab-matrix">
+        <div class="section-heading">Notification Requirements by CAT Level (CJCSM 6510.01B)</div>
+        <div class="matrix-wrap">
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th>Report / Notification</th>
+                        <th>CAT I (&lt;1 hr)</th>
+                        <th>CAT II (&lt;8 hrs)</th>
+                        <th>CAT III (&lt;24 hrs)</th>
+                        <th>CAT IV (&lt;72 hrs)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>BN/BDE CDR Notification</td><td class="req">≤ 1 hour</td><td class="req">≤ 4 hours</td><td class="cond">≤ 24 hours</td><td class="na">Daily SITREP</td></tr>
+                    <tr><td>ARCYBER Initial Notification</td><td class="req">≤ 1 hour</td><td class="req">≤ 8 hours</td><td class="cond">≤ 24 hours</td><td class="na">≤ 72 hours</td></tr>
+                    <tr><td>System Owner Notification</td><td class="req">≤ 1 hour</td><td class="req">≤ 4 hours</td><td class="cond">≤ 8 hours</td><td class="na">As appropriate</td></tr>
+                    <tr><td>Legal Notification (PII/CUI)</td><td class="req">≤ 1 hour</td><td class="cond">If PII/CUI</td><td class="cond">If applicable</td><td class="na">—</td></tr>
+                    <tr><td>Status Updates</td><td class="req">Every 6 hrs</td><td class="req">Every 12 hrs</td><td class="cond">Every 24 hrs</td><td class="na">—</td></tr>
+                    <tr><td>Final Report (after closure)</td><td class="req">≤ 72 hrs</td><td class="req">≤ 72 hrs</td><td class="req">≤ 72 hrs</td><td class="req">≤ 72 hrs</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-heading" style="margin-top:30px;">CAT Level Classification Criteria</div>
+        <div class="matrix-wrap">
+            <table class="matrix-table">
+                <thead>
+                    <tr><th>CAT</th><th>Criteria</th><th>Examples</th><th>IC Action</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="cat-badge cat1-b">CAT I</span></td><td>Mission impact — significant damage to DoD systems, CUI/PII breach, nation-state attribution likely</td><td>Ransomware outbreak, domain controller compromise, OT impact, insider threat confirmed</td><td>Immediate BN/BDE + ARCYBER. Battle rhythm every 6 hrs.</td></tr>
+                    <tr><td><span class="cat-badge cat2-b">CAT II</span></td><td>Unauthorized access — confirmed intrusion without widespread impact, significant capability degraded</td><td>Single host malware, C2 detected and contained, credential theft limited scope</td><td>BN CDR ≤4 hrs. ARCYBER ≤8 hrs. Updates every 12 hrs.</td></tr>
+                    <tr><td><span class="cat-badge cat3-b">CAT III</span></td><td>Unsuccessful attack or minor incident — attack attempted but contained, single non-critical system</td><td>Phishing attempt (no execution), web app scan, isolated persistence found</td><td>Element Lead + System Owner. Document and monitor.</td></tr>
+                    <tr><td><span class="cat-badge cat4-b">CAT IV</span></td><td>Suspected activity or policy violation — anomaly requires investigation, no confirmed breach</td><td>Suspicious email, minor policy violation, low-confidence IOC</td><td>Document. Monitor. Escalate if confirmed.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-heading" style="margin-top:30px;">Action Authority Matrix</div>
+        <div class="matrix-wrap">
+            <table class="matrix-table">
+                <thead>
+                    <tr><th>Action</th><th>Analyst Authority</th><th>IC Authority</th><th>CDR Authority Required</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Endpoint isolation (non-critical)</td><td class="req">YES</td><td class="req">YES</td><td class="na">NO</td></tr>
+                    <tr><td>Endpoint isolation (critical/production)</td><td class="na">NO</td><td class="req">YES</td><td class="na">NO</td></tr>
+                    <tr><td>Domain-wide credential reset</td><td class="na">NO</td><td class="req">YES</td><td class="na">NO</td></tr>
+                    <tr><td>Domain controller isolation</td><td class="na">NO</td><td class="na">NO</td><td class="req">YES</td></tr>
+                    <tr><td>Network segment isolation</td><td class="na">NO</td><td class="req">YES</td><td class="na">NO</td></tr>
+                    <tr><td>Ransom payment authorization</td><td class="na">NO</td><td class="na">NO</td><td class="req">YES + Legal + HQ</td></tr>
+                    <tr><td>OT system isolation</td><td class="na">NO</td><td class="na">Coordinate w/ OT Eng</td><td class="cond">Mission Owner</td></tr>
+                    <tr><td>Covert monitoring (insider threat)</td><td class="na">NO</td><td class="na">NO</td><td class="req">Legal + CDR</td></tr>
+                    <tr><td>External media/IR firm engagement</td><td class="na">NO</td><td class="na">NO</td><td class="req">YES</td></tr>
+                    <tr><td>Forensic imaging (suspect system)</td><td class="req">YES</td><td class="req">YES</td><td class="na">NO</td></tr>
+                    <tr><td>Block C2 IOC (network)</td><td class="cond">With IC approval</td><td class="req">YES</td><td class="na">NO</td></tr>
+                    <tr><td>DCO-RA action (active response)</td><td class="na">NO</td><td class="na">NO</td><td class="req">CDR + ARCYBER + Legal</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- New Incident Modal -->
+<div class="modal-overlay" id="new-incident-modal">
+    <div class="modal">
+        <div class="modal-title">Open New Incident</div>
+        <div class="form-group">
+            <label>Incident Title / Short Description</label>
+            <input type="text" id="inc-title" placeholder="e.g., Malware detected on WS-042">
+        </div>
+        <div class="form-group">
+            <label>CAT Level</label>
+            <select id="inc-cat">
+                <option value="1">CAT I — Mission Impact</option>
+                <option value="2" selected>CAT II — Unauthorized Access</option>
+                <option value="3">CAT III — Unsuccessful / Minor</option>
+                <option value="4">CAT IV — Suspected / Policy</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Applicable Playbook</label>
+            <select id="inc-playbook">
+                <option value="">— Select Playbook —</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Affected System(s)</label>
+            <input type="text" id="inc-system" placeholder="e.g., WS-042, DC-01">
+        </div>
+        <div class="form-group">
+            <label>IC / Incident Commander</label>
+            <input type="text" id="inc-ic" placeholder="Rank / Name">
+        </div>
+        <div class="form-group">
+            <label>Initial Notes</label>
+            <textarea id="inc-notes" placeholder="Initial situation summary..."></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-sm btn-cancel" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" onclick="createIncident()">Open Incident</button>
+        </div>
+    </div>
+</div>
+
+<!-- Playbook Viewer Modal -->
+<div class="modal-overlay" id="pb-viewer-modal">
+    <div class="modal pb-viewer">
+        <div class="modal-title" id="pb-viewer-title">Playbook</div>
+        <div class="pb-viewer-body" id="pb-viewer-body"><div class="loading">Loading...</div></div>
+        <div class="modal-footer">
+            <button class="btn-sm btn-cancel" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="notification" id="notification"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const PLAYBOOKS = [
+    { id:'IR-PB-001', name:'Malware Triage', file:'playbook-malware-triage-7step.md', cat:'malware', threatType:'Malware Triage', primaryLead:'Host Analyst', desc:'Initial triage workflow for suspected malware. Confirm true-positive, classify severity, preserve evidence, contain.', tactics:['T1204','T1059','T1547'] },
+    { id:'IR-PB-002', name:'Malware Outbreak Response', file:'playbook-malware-outbreak-7step.md', cat:'malware', threatType:'Malware Outbreak', primaryLead:'Host Analyst', desc:'Multi-host malware containment and eradication. Outbreak declaration, EDR mass containment, scope determination.', tactics:['T1204','T1021','T1036'] },
+    { id:'IR-PB-003', name:'Ransomware Response', file:'playbook-ransomware-7step.md', cat:'malware', threatType:'Ransomware', primaryLead:'Host Analyst', desc:'Ransomware isolation, backup integrity validation, and ransom payment authority chain. DO NOT negotiate without CDR + Legal.', tactics:['T1486','T1490','T1489'] },
+    { id:'IR-PB-004', name:'C2 / Beaconing Response', file:'playbook-c2-response-7step.md', cat:'exfil', threatType:'Command & Control', primaryLead:'Network Analyst', desc:'Detect, characterize, and disrupt C2 channels. All-hosts-before-blocking rule. Beacon interval analysis.', tactics:['T1071','T1573','T1095'] },
+    { id:'IR-PB-005', name:'Lateral Movement Response', file:'playbook-lateral-movement-7step.md', cat:'movement', threatType:'Lateral Movement', primaryLead:'Network Analyst', desc:'Map pivot paths, identify all affected systems, contain movement. Includes krbtgt double-reset procedure.', tactics:['T1021','T1550','T1558'] },
+    { id:'IR-PB-006', name:'Credential Theft Response', file:'playbook-credential-theft-7step.md', cat:'access', threatType:'Credential Theft', primaryLead:'Host Analyst', desc:'Respond to compromised credentials. NTDS.dit compromise, domain-wide rotation, pass-the-hash / pass-the-ticket response.', tactics:['T1003','T1558','T1550'] },
+    { id:'IR-PB-007', name:'Data Exfiltration Response', file:'playbook-data-exfiltration-7step.md', cat:'exfil', threatType:'Data Exfiltration', primaryLead:'Network Analyst', desc:'Detect and stop data theft. Volume correlation, destination blocking, data breach notification triggers.', tactics:['T1048','T1567','T1041'] },
+    { id:'IR-PB-008', name:'Denial of Service Response', file:'playbook-denial-of-service-7step.md', cat:'disruption', threatType:'Denial of Service', primaryLead:'Network Analyst', desc:'Volumetric, protocol, and application-layer DoS mitigation. Source identification, traffic shaping, DoS-as-diversion check.', tactics:['T1498','T1499','T1529'] },
+    { id:'IR-PB-009', name:'Privilege Escalation Response', file:'playbook-privilege-escalation-7step.md', cat:'access', threatType:'Privilege Escalation', primaryLead:'Host Analyst', desc:'Detect and revoke unauthorized privilege gains. Multi-playbook cascade trigger to lateral movement, credential theft.', tactics:['T1068','T1134','T1548'] },
+    { id:'IR-PB-010', name:'Persistence Mechanism Response', file:'playbook-persistence-7step.md', cat:'movement', threatType:'Persistence', primaryLead:'Host Analyst', desc:'Enumerate and eradicate all persistence mechanisms. Complete Windows/Linux persistence location coverage.', tactics:['T1053','T1543','T1547'] },
+    { id:'IR-PB-011', name:'Phishing Response', file:'playbook-phishing-response-7step.md', cat:'access', threatType:'Phishing / Email Attack', primaryLead:'Host Analyst', desc:'Triage phishing emails, determine execution vs. no-execution, quarantine-all-recipients-first, campaign scope analysis.', tactics:['T1566','T1204','T1598'] },
+    { id:'IR-PB-012', name:'Insider Threat Response', file:'playbook-insider-threat-7step.md', cat:'access', threatType:'Insider Threat', primaryLead:'Incident Commander', desc:'Covert vs. overt containment decision. Legal-first sequencing. Investigation confidentiality and prosecution chain of custody.', tactics:['T1078','T1048','T1213'] },
+    { id:'IR-PB-013', name:'Web Application Attack Response', file:'playbook-web-application-attack-7step.md', cat:'access', threatType:'Web Application Attack', primaryLead:'Network Analyst', desc:'SQLi, web shell (= host compromise trigger), auth bypass. OWASP Top 10 mapping and remediation.', tactics:['T1190','T1505.003','T1059'] },
+    { id:'IR-PB-014', name:'Cloud / SaaS Compromise', file:'playbook-cloud-saas-compromise-7step.md', cat:'cloud', threatType:'Cloud Compromise', primaryLead:'Network Analyst', desc:'Token/session revocation sequence. Password reset ≠ enough. Azure/AWS/GCP coverage, OAuth persistence removal.', tactics:['T1078.004','T1530','T1136.003'] },
+    { id:'IR-PB-015', name:'OT / ICS Incident Response', file:'playbook-ot-ics-incident-response-7step.md', cat:'ot', threatType:'OT/ICS Attack', primaryLead:'Network Analyst', desc:'Safety-first OT posture. Purdue Model zone awareness. ICS ATT&CK mapping. NEVER isolate OT devices unilaterally.', tactics:['T0817','T0855','T0831'] },
+    { id:'IR-PB-016', name:'Digital Forensics & Evidence Collection', file:'playbook-digital-forensics-evidence-collection-7step.md', cat:'process', threatType:'Supporting SOP', primaryLead:'Host Analyst', desc:'Order of volatility, write-blocker procedure, chain of custody form. Invoked by all evidence-requiring playbooks.', tactics:['T1005','T1560','T1074'] },
+    { id:'IR-PB-017', name:'Threat Hunt Playbook', file:'playbook-threat-hunt-7step.md', cat:'process', threatType:'Proactive Hunt', primaryLead:'S-2 / Intel Analyst', desc:'Intelligence-driven proactive hunt. Hypothesis framework: the attacker is already here. Hunt log and detection improvement cycle.', tactics:['T1053','T1059','T1071'] },
+    { id:'IR-PB-018', name:'Incident Commander Battle Rhythm', file:'playbook-incident-commander-battle-rhythm-7step.md', cat:'process', threatType:'Command Playbook', primaryLead:'Incident Commander', desc:'IC decision sequence, CAT-based battle rhythm templates, status brief format, AAR structure, reporting tracker. Governs all 17 other playbooks.', tactics:[] }
+];
+
+const IR_TEAM = [
+    { id:'ic', name:'Mission OIC / Incident Commander', abbr:'IC', role:'Command authority and decision maker for all IR actions above analyst level', color:'#dc2626', pbs:['IR-PB-012','IR-PB-018'], authorities:['Authorize containment actions','Escalate to BN/BDE CDR','Approve risk acceptance decisions','Sign all external reports','Declare incident CAT level','Authorize eradication and recovery start','Declare incident closure'] },
+    { id:'host', name:'17C Host Analyst', abbr:'HA', role:'Primary lead for endpoint forensics, malware analysis, and host-side incident response', color:'#16a34a', pbs:['IR-PB-001','IR-PB-002','IR-PB-003','IR-PB-006','IR-PB-009','IR-PB-010','IR-PB-011','IR-PB-016'], authorities:['Collect forensic evidence (disk/memory)','Perform malware analysis','Determine true positive / false positive','Recommend containment approach (host-level)','Execute host isolation (with IC authorization)'] },
+    { id:'net', name:'17C Network Analyst', abbr:'NA', role:'Primary lead for network forensics, C2 detection, lateral movement, and cloud/OT incidents', color:'#0891b2', pbs:['IR-PB-004','IR-PB-005','IR-PB-007','IR-PB-008','IR-PB-013','IR-PB-014','IR-PB-015'], authorities:['Block IOCs at network boundary (with IC approval)','Analyze traffic and NetFlow','Identify C2 channels and lateral movement paths','Manage network-level containment actions','Monitor perimeter and internal segments'] },
+    { id:'planner', name:'Cyber Operations Planner', abbr:'PL', role:'Reporting products, COA development, authority coordination, mission impact assessment', color:'#7c3aed', pbs:['All playbooks — reporting support'], authorities:['Draft all external reports for IC review','Coordinate legal and authority review','Develop COAs for IC decision','Maintain reporting tracker','Produce mission impact assessments'] },
+    { id:'s2', name:'S-2 / Intelligence Analyst', abbr:'S2', role:'Threat intelligence, attribution, hunt hypothesis development, PIR/RFI updates', color:'#b45309', pbs:['IR-PB-017'], authorities:['Develop threat profiles and attributions','Maintain hunt hypothesis backlog','Provide PIR/RFI answers','Correlate IOCs to threat actors','Request external intelligence support'] },
+    { id:'itops', name:'IT Ops / Sysadmin', abbr:'IT', role:'Technical execution of containment, credential resets, restoration, and infrastructure support', color:'#475569', pbs:['Technical execution for all playbooks'], authorities:['Execute system isolation (when authorized)','Perform credential resets (when authorized)','Restore systems from backup','Maintain network access for response team','Provide system access logs and configuration'] },
+    { id:'legal', name:'Legal / JAG', abbr:'JA', role:'Legal authority review, monitoring authorization, insider threat co-lead, prosecution chain', color:'#991b1b', pbs:['IR-PB-012 co-lead'], authorities:['Authorize covert monitoring operations','Review evidence collection for prosecution','Approve ransom response (with CDR)','Advise on data breach notification obligations','Review media communications'] },
+    { id:'tier1', name:'Tier 1 SOC / Help Desk', abbr:'T1', role:'Initial detection triage, user coordination, phishing first response, ticket creation', color:'#1d4ed8', pbs:['IR-PB-011'], authorities:['Create initial incident ticket','Contact users for initial information','Escalate confirmed incidents to IC/analysts','Execute user account password resets (when authorized)'] },
+    { id:'owner', name:'System Owner / Mission Owner', abbr:'SO', role:'Operational authority for mission systems; must approve actions affecting production systems', color:'#0f766e', pbs:['IR-PB-015 (OT operational decisions)'], authorities:['Authorize actions on production/mission systems','Approve system downtime for IR activities','Activate manual operations (OT environments)','Accept residual risk post-recovery','Sign off on system restoration to service'] }
+];
+
+const STEPS_REFERENCE = [
+    { num:1, name:'Preparation', sub:'Readiness before incidents occur', color:'#0891b2', bg:'rgba(8,145,178,0.12)',
+      actions:['Update playbook library and contact rosters','Validate tool and collection capability','Confirm legal authorities (monitoring, isolation, RA)','Train IR team on roles and procedures','Establish reporting channels and templates','Conduct tabletop exercises'],
+      outputs:['IC readiness checklist complete','Contact roster current','Tool baseline validated','Authority chain documented','Reporting templates ready'] },
+    { num:2, name:'Detection & Identification', sub:'Confirm the incident and classify severity', color:'#7c3aed', bg:'rgba(124,58,237,0.12)',
+      actions:['Validate alert as true positive (not false positive)','Determine scope — how many systems/users affected?','Classify CAT level (I–IV)','Identify likely threat type and applicable playbook','Preserve initial evidence (before any containment)','Notify IC with standard notification format'],
+      outputs:['True positive confirmation','CAT level determination','Applicable playbook identified','IC notified','Initial evidence preserved'] },
+    { num:3, name:'Containment', sub:'Stop the bleeding — prevent further spread', color:'#dc2626', bg:'rgba(220,38,38,0.12)',
+      actions:['Isolate affected endpoints (IC authorization required)','Block IOCs at network boundary','Disable compromised accounts / revoke tokens','Preserve forensic evidence before cleanup','Coordinate OT containment with OT engineers','Document all containment actions with timestamps'],
+      outputs:['Affected systems isolated or monitored','Network-level blocking in place','Compromised credentials disabled','Forensic images collected','Containment status report to IC'] },
+    { num:4, name:'Eradication', sub:'Remove all attacker presence', color:'#ea580c', bg:'rgba(234,88,12,0.12)',
+      actions:['Confirm full scope before eradication begins','Remove malware, tools, and attacker accounts','Patch exploited vulnerabilities','Validate no residual attacker presence','Coordinate system changes with System Owner','Document all eradication actions'],
+      outputs:['All malware/tools removed','All persistence mechanisms identified and removed','Vulnerabilities patched','Attacker access paths closed','Eradication verification report'] },
+    { num:5, name:'Recovery', sub:'Restore systems to trusted operational state', color:'#16a34a', bg:'rgba(22,163,74,0.12)',
+      actions:['Restore from clean backup or rebuild if necessary','Validate system integrity before restoration','Re-enable accounts with new credentials / MFA','Implement enhanced monitoring post-recovery','Notify System Owner / Mission Owner on restoration','Phase restoration — do not restore all at once'],
+      outputs:['Systems restored and validated','Enhanced monitoring active','System Owner sign-off on restoration','Recovery status report'] },
+    { num:6, name:'Post-Incident Analysis', sub:'Learn and improve — AAR and lessons learned', color:'#b45309', bg:'rgba(180,83,9,0.12)',
+      actions:['Complete full incident timeline','Conduct After Action Review (CAT I/II — within 72 hrs)','Identify root cause','Document lessons learned','Generate POA&Ms for identified gaps','Update playbooks and detection rules'],
+      outputs:['Incident timeline (final)','AAR product (CAT I/II)','Lessons learned document','POA&M entries for gaps','Updated playbooks or detection rules'] },
+    { num:7, name:'Coordination & Reporting', sub:'Complete all reporting obligations — ongoing throughout', color:'#64748b', bg:'rgba(100,116,139,0.12)',
+      actions:['Submit ARCYBER notification (CAT-based deadline)','Notify BN/BDE CDR per CAT level','Notify System Owner','Coordinate with Legal on PII/CUI breach','Maintain IC reporting tracker throughout','Submit final incident report within 72 hrs of closure'],
+      outputs:['ARCYBER notification submitted','CDR notification submitted','System Owner notified','Final incident report submitted and acknowledged','Reporting tracker complete'] }
+];
+
+// ─── RENDER FUNCTIONS ───────────────────────────────────────────────────────
+
+function catBadgeClass(cat) {
+    const map = { malware:'cat-malware', movement:'cat-movement', exfil:'cat-exfil', access:'cat-access', disruption:'cat-disruption', cloud:'cat-cloud', ot:'cat-ot', process:'cat-process' };
+    return map[cat] || 'cat-process';
+}
+function catLabel(cat) {
+    const map = { malware:'Malware', movement:'Movement / Persistence', exfil:'Exfil / C2', access:'Access / Credential', disruption:'Disruption / DoS', cloud:'Cloud / SaaS', ot:'OT / ICS', process:'Process SOP' };
+    return map[cat] || cat;
+}
+
+function renderLibrary() {
+    const search = (document.getElementById('pb-search')?.value || '').toLowerCase();
+    const catF = document.getElementById('pb-filter-cat')?.value || '';
+    const leadF = document.getElementById('pb-filter-lead')?.value || '';
+    const grid = document.getElementById('pb-grid');
+    const filtered = PLAYBOOKS.filter(p => {
+        if (catF && p.cat !== catF) return false;
+        if (leadF && !p.primaryLead.includes(leadF)) return false;
+        if (search && !p.name.toLowerCase().includes(search) && !p.desc.toLowerCase().includes(search) && !p.threatType.toLowerCase().includes(search)) return false;
+        return true;
+    });
+    grid.innerHTML = filtered.length === 0 ? '<div class="empty-state" style="grid-column:1/-1"><p>No playbooks match filters.</p></div>' :
+        filtered.map(p => `
+        <div class="pb-card">
+            <div class="pb-card-header">
+                <span class="pb-id">${p.id}</span>
+                <span class="pb-cat-badge ${catBadgeClass(p.cat)}">${catLabel(p.cat)}</span>
+            </div>
+            <div class="pb-name">${p.name}</div>
+            <div class="pb-lead">Lead: <span>${p.primaryLead}</span></div>
+            <div class="pb-desc">${p.desc}</div>
+            ${p.tactics.length ? `<div class="pb-tags">${p.tactics.map(t=>`<span class="pb-tag">${t}</span>`).join('')}</div>` : ''}
+            <div class="pb-actions">
+                <button class="btn-sm btn-view" onclick="viewPlaybook('${p.id}')">View Playbook</button>
+                <button class="btn-sm btn-activate" onclick="activatePlaybook('${p.id}')">Open Incident</button>
+            </div>
+        </div>`).join('');
+}
+
+function renderTeam() {
+    document.getElementById('team-grid').innerHTML = IR_TEAM.map(e => `
+        <div class="entity-card" style="border-left:4px solid ${e.color}">
+            <div class="entity-header">
+                <div class="entity-avatar" style="background:${e.color}">${e.abbr}</div>
+                <div>
+                    <div class="entity-name">${e.name}</div>
+                    <div class="entity-role">${e.role}</div>
+                </div>
+            </div>
+            <div class="entity-section">
+                <div class="entity-section-title">Primary Playbooks</div>
+                <div class="entity-pbs">${(Array.isArray(e.pbs)?e.pbs:[e.pbs]).map(p=>`<span class="entity-pb">${p}</span>`).join('')}</div>
+            </div>
+            <div class="entity-section" style="margin-top:10px">
+                <div class="entity-section-title">Authority / Responsibilities</div>
+                <ul class="authority-list">${e.authorities.map(a=>`<li>${a}</li>`).join('')}</ul>
+            </div>
+        </div>`).join('');
+}
+
+function renderStepsRef() {
+    document.getElementById('steps-ref').innerHTML = STEPS_REFERENCE.map(s => `
+        <div class="step-card" style="border-left-color:${s.color};background:${s.bg}">
+            <div class="step-card-header">
+                <div class="step-num-circle" style="background:${s.color}">${s.num}</div>
+                <div>
+                    <div class="step-title">Step ${s.num}: ${s.name}</div>
+                    <div class="step-subtitle">${s.sub}</div>
+                </div>
+            </div>
+            <div class="step-body">
+                <div>
+                    <div class="step-col-title">Key Actions</div>
+                    <ul class="step-items">${s.actions.map(a=>`<li>${a}</li>`).join('')}</ul>
+                </div>
+                <div>
+                    <div class="step-col-title">Required Outputs</div>
+                    <ul class="step-items">${s.outputs.map(o=>`<li>${o}</li>`).join('')}</ul>
+                </div>
+            </div>
+        </div>`).join('');
+}
+
+// ─── INCIDENT TRACKER ───────────────────────────────────────────────────────
+
+const STEP_NAMES = ['Preparation','Detection','Containment','Eradication','Recovery','Post-Incident','Reporting'];
+let incidents = JSON.parse(localStorage.getItem('ir_incidents') || '[]');
+
+function saveIncidents() { localStorage.setItem('ir_incidents', JSON.stringify(incidents)); }
+
+function renderIncidents() {
+    const list = document.getElementById('incidents-list');
+    document.getElementById('active-count').textContent = incidents.length;
+    if (!incidents.length) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">🛡️</div><p>No active incidents. Click <strong>+ New Incident</strong> to begin tracking a response.</p></div>';
+        return;
+    }
+    list.innerHTML = incidents.map((inc, idx) => `
+        <div class="incident-card cat${inc.cat}" id="inc-${inc.id}">
+            <div class="inc-header">
+                <div>
+                    <div class="inc-title">${inc.title}</div>
+                    <div class="inc-meta">ID: ${inc.id} &nbsp;|&nbsp; Opened: ${inc.opened} &nbsp;|&nbsp; IC: ${inc.ic || 'TBD'} &nbsp;|&nbsp; System: ${inc.system || 'TBD'} &nbsp;|&nbsp; Playbook: ${inc.playbook || 'None assigned'}</div>
+                </div>
+                <div class="inc-badges">
+                    <span class="cat-badge cat${inc.cat}-b">CAT ${inc.cat}</span>
+                </div>
+            </div>
+            <div style="font-size:11px;color:#475569;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em">7-Step Progress — click to toggle</div>
+            <div class="steps-progress">
+                ${STEP_NAMES.map((sn, si) => {
+                    const st = inc.steps[si];
+                    return `<div class="step-pill ${st}" onclick="toggleStep(${idx},${si})"><span class="step-num">${si+1}</span>${sn}</div>`;
+                }).join('')}
+            </div>
+            <textarea class="inc-notes" placeholder="Running notes / timeline..." onchange="updateNotes(${idx}, this.value)">${inc.notes || ''}</textarea>
+            <div class="inc-footer">
+                <div style="font-size:11px;color:#475569">${inc.steps.filter(s=>s==='complete').length} / 7 steps complete</div>
+                <button class="btn-sm btn-danger" onclick="closeIncident(${idx})">Close Incident</button>
+            </div>
+        </div>`).join('');
+}
+
+function toggleStep(incIdx, stepIdx) {
+    const inc = incidents[incIdx];
+    const current = inc.steps[stepIdx];
+    inc.steps[stepIdx] = current === 'pending' ? 'active' : current === 'active' ? 'complete' : 'pending';
+    saveIncidents();
+    renderIncidents();
+}
+
+function updateNotes(incIdx, val) {
+    incidents[incIdx].notes = val;
+    saveIncidents();
+}
+
+function closeIncident(incIdx) {
+    if (!confirm('Close this incident? It will be removed from the tracker.')) return;
+    incidents.splice(incIdx, 1);
+    saveIncidents();
+    renderIncidents();
+    showNotif('Incident closed.');
+}
+
+function openNewIncident() {
+    const sel = document.getElementById('inc-playbook');
+    sel.innerHTML = '<option value="">— None / TBD —</option>' + PLAYBOOKS.map(p=>`<option value="${p.name}">${p.id}: ${p.name}</option>`).join('');
+    document.getElementById('new-incident-modal').classList.add('active');
+}
+
+function createIncident() {
+    const title = document.getElementById('inc-title').value.trim();
+    if (!title) { showNotif('Incident title is required.', true); return; }
+    const id = 'IR-' + String(Date.now()).slice(-6);
+    incidents.push({
+        id, title,
+        cat: document.getElementById('inc-cat').value,
+        playbook: document.getElementById('inc-playbook').value,
+        system: document.getElementById('inc-system').value,
+        ic: document.getElementById('inc-ic').value,
+        notes: document.getElementById('inc-notes').value,
+        opened: new Date().toLocaleString(),
+        steps: Array(7).fill('pending')
+    });
+    saveIncidents();
+    renderIncidents();
+    closeModal();
+    document.getElementById('tab-active').classList.add('active');
+    showNotif('Incident ' + id + ' opened.');
+}
+
+function activatePlaybook(pbId) {
+    const pb = PLAYBOOKS.find(p=>p.id===pbId);
+    if (!pb) return;
+    const sel = document.getElementById('inc-playbook');
+    sel.innerHTML = '<option value="">— None / TBD —</option>' + PLAYBOOKS.map(p=>`<option value="${p.name}">${p.id}: ${p.name}</option>`).join('');
+    sel.value = pb.name;
+    document.getElementById('inc-title').value = pb.name + ' — ' + new Date().toLocaleDateString();
+    document.getElementById('new-incident-modal').classList.add('active');
+    switchTab('active');
+}
+
+// ─── PLAYBOOK VIEWER ─────────────────────────────────────────────────────────
+
+function viewPlaybook(pbId) {
+    const pb = PLAYBOOKS.find(p=>p.id===pbId);
+    if (!pb) return;
+    document.getElementById('pb-viewer-title').textContent = pb.id + ': ' + pb.name;
+    document.getElementById('pb-viewer-body').innerHTML = '<div class="loading">Loading playbook...</div>';
+    document.getElementById('pb-viewer-modal').classList.add('active');
+    fetch('/docs/technical/SOP/Playbooks-7Step/' + pb.file)
+        .then(r => r.ok ? r.text() : Promise.reject('Not found'))
+        .then(text => { document.getElementById('pb-viewer-body').textContent = text; })
+        .catch(() => { document.getElementById('pb-viewer-body').innerHTML = '<div class="loading">Playbook file not available in browser preview.<br>Path: docs/technical/SOP/Playbooks-7Step/' + pb.file + '</div>'; });
+}
+
+// ─── MODALS & TABS ──────────────────────────────────────────────────────────
+
+function closeModal() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+}
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tabId));
+}
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) closeModal(); }));
+document.getElementById('pb-search').addEventListener('input', renderLibrary);
+document.getElementById('pb-filter-cat').addEventListener('change', renderLibrary);
+document.getElementById('pb-filter-lead').addEventListener('change', renderLibrary);
+
+function showNotif(msg, isError) {
+    const n = document.getElementById('notification');
+    n.textContent = msg;
+    n.className = 'notification show' + (isError ? ' error' : '');
+    setTimeout(() => { n.className = 'notification'; }, 3000);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+
+renderLibrary();
+renderTeam();
+renderStepsRef();
+renderIncidents();
+</script>
+</body>
+</html>
