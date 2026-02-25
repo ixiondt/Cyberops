@@ -8,6 +8,8 @@ Combines interactive dashboards (MDMP planning, operations tracking, network vis
 
 ## Quick Start
 
+**System Requirements:** Node.js 14+ (see [DEPENDENCIES.txt](./DEPENDENCIES.txt) for complete list)
+
 **Start the dashboards:**
 ```bash
 npm install  # First time only

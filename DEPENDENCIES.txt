@@ -1,0 +1,205 @@
+# CyberOpsPlanner Dependencies
+# Complete list of runtime, development, and system requirements
+
+---
+
+## SYSTEM REQUIREMENTS
+
+**Operating System:**
+- Linux (Ubuntu 20.04+, CentOS 8+)
+- macOS (10.15+)
+- Windows 11 / Windows Server 2019+
+
+**Node.js Runtime:**
+- Node.js >= 14.0.0 (tested with 16.x and 18.x)
+- npm >= 6.0.0 (comes with Node.js)
+
+**Browser Requirements (Dashboard):**
+- Chrome/Chromium 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+- Modern browser with ES6+ support
+
+**Disk Space:**
+- ~500 MB for Node.js and node_modules
+- ~100 MB for project files and operations
+- Additional space for operation artifacts (varies)
+
+---
+
+## NPM DEPENDENCIES (package.json)
+
+**Production Dependencies:**
+- docx ^8.5.0 (Word document generation - AR 25-50 export)
+- vis-network ^10.0.2 (Network threat visualization)
+
+**Installation:**
+```bash
+npm install
+```
+
+Creates node_modules/ with all transitive dependencies.
+
+---
+
+## DEVELOPMENT & OPTIONAL DEPENDENCIES
+
+**For Local Development:**
+- Git (for version control)
+- Code editor (VS Code recommended for Claude Code integration)
+- curl or Postman (for API testing)
+
+**For Testing & Quality Assurance:**
+- Node.js testing tools (optional, not currently in use)
+- Browser developer tools (built-in to modern browsers)
+
+**Installation:**
+```bash
+# No additional dev dependencies currently configured
+# Install manually if needed:
+# npm install --save-dev [package-name]
+```
+
+---
+
+## CLAUDE CODE INTEGRATION
+
+**Claude Code CLI Requirements:**
+- Claude Code installed and configured
+- CLAUDE.md system prompt (included in project root)
+- Three AI role definitions (in docs/personnel/):
+  - skill-cyberopsplanner.yaml
+  - skill-host-analyst.yaml
+  - skill-network-analyst.yaml
+
+**Invocation:**
+```bash
+claude code .
+```
+
+---
+
+## EXTERNAL DOCUMENTATION & REFERENCES
+
+**Doctrine Library** (17 PDFs in docs/doctrine/):
+- ADP/ATP manuals (operations process, planning)
+- FM 2-0, 3-12, 3-13 (Intelligence, Cyber, Info Ops)
+- JP 2-01.3, 3-12 (Joint perspectives)
+- MITRE ATT&CK frameworks (Enterprise, ICS, Mobile)
+
+**Incident Response Playbooks** (docs/technical/SOP/):
+- Malware response playbooks (triage, outbreak, persistence)
+- Attack vector playbooks (credential theft, lateral movement, privilege escalation)
+- Exfiltration & C2 response playbooks
+- Denial of Service response playbook
+- Host and network analysis playbooks
+
+These are reference documents, not code dependencies.
+
+---
+
+## RUNTIME ENVIRONMENT VARIABLES
+
+**Optional Configuration:**
+- NODE_ENV (default: production)
+- PORT (default: 3000)
+
+**Example:**
+```bash
+NODE_ENV=development PORT=8080 node server.js
+```
+
+---
+
+## NETWORK & CONNECTIVITY
+
+**Server Port:**
+- Default: localhost:3000
+- Requires port 3000 to be available (check with: lsof -i :3000)
+
+**For Remote Access:**
+- Configure firewall rules if accessing from non-local network
+- Consider reverse proxy (nginx, Apache) for production
+- SSL/TLS recommended for remote deployments
+
+---
+
+## INSTALLATION QUICK START
+
+```bash
+# 1. Verify Node.js installed
+node --version  # Should be >= 14.0.0
+npm --version   # Should be >= 6.0.0
+
+# 2. Install project dependencies
+cd CyberOpsPlanner
+npm install
+
+# 3. Verify installation
+npm list  # Shows installed packages
+
+# 4. Start server
+npm start  # Or: node server.js
+
+# 5. Verify running
+curl http://localhost:3000  # Should return HTML
+```
+
+---
+
+## TROUBLESHOOTING DEPENDENCY ISSUES
+
+**"Module not found" errors:**
+```bash
+# Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**Port 3000 already in use:**
+```bash
+# Find and kill process on port 3000
+lsof -i :3000
+kill -9 [PID]
+
+# Or use different port
+PORT=8080 npm start
+```
+
+**Node.js version mismatch:**
+```bash
+# Check current version
+node --version
+
+# Install correct version (using nvm if available)
+nvm install 16.x
+nvm use 16.x
+```
+
+---
+
+## COMPATIBILITY NOTES
+
+**Tested Configurations:**
+- Node 16.x on Ubuntu 20.04
+- Node 18.x on macOS 12.x
+- Node 16.x on Windows 11
+
+**Known Limitations:**
+- Requires modern JavaScript ES6+ support
+- vis-network library uses WebGL (requires compatible GPU/driver)
+- Some features may not work on older browsers
+
+---
+
+## VERSION INFORMATION
+
+Project Version: 2.0.0
+Last Updated: 2026-02-25
+Node.js Minimum: 14.0.0
+Node.js Recommended: 16.x or 18.x
+
+---
+
+**Classification:** UNCLASSIFIED // FOUO
