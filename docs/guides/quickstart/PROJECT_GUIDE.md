@@ -59,9 +59,14 @@ CyberPlanner/
 │       ├── skill-host-analyst.yaml      ← Host analyst system prompt
 │       └── skill-network-analyst.yaml   ← Network analyst system prompt
 │
-├── 🖥️ DASHBOARDS (HTML + JavaScript)
-│   ├── dashboard.html               ← Operations dashboard (incidents, POAMs)
-│   ├── mdmp-dashboard.html          ← MDMP planning dashboard
+├── 🖥️ DASHBOARDS & FRONTEND
+│   ├── frontend/                    ← Frontend files served by Node.js
+│   │   ├── dashboard.html           ← Operations dashboard (incidents, POAMs)
+│   │   ├── mdmp-dashboard.html      ← MDMP planning dashboard
+│   │   ├── network-map.html         ← Network visualization
+│   │   ├── ir-playbook-dashboard.html ← Incident response playbooks
+│   │   ├── css/                     ← Dashboard styling
+│   │   └── js/                      ← Dashboard JavaScript logic
 │   ├── server.js                    ← Node.js HTTP server + API
 │   ├── package.json                 ← Node dependencies (docx library)
 │   └── package-lock.json            ← Dependency lock file
@@ -72,10 +77,7 @@ CyberPlanner/
 │   │   ├── QUICKSTART.md            ← Setup guide
 │   │   ├── CONTRIBUTING.md          ← Contribution guidelines
 │   │   ├── roles/                   ← Role documentation
-│   │   │   ├── ROLES.md
-│   │   │   ├── skill-cyberopsplanner.yaml (moved to docs/personnel/)
-│   │   │   ├── skill-host-analyst.yaml (moved to docs/personnel/)
-│   │   │   ├── skill-network-analyst.yaml (moved to docs/personnel/)
+│   │   │   ├── ROLES.md              ← Role switching guide
 │   │   │   ├── mdmp-role-mapping.md
 │   │   │   └── task-role-map.md
 │   │   ├── competency/              ← Competency framework
