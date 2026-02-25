@@ -173,9 +173,6 @@ class CyberOpsPlanner {
             case 'mdmp-planner':
                 // Load MDMP planner content (unified dashboard)
                 loadMDMPPlannerContent(this.currentOperation.id);
-                if (typeof renderMDMPPlanner === 'function') {
-                    renderMDMPPlanner(this.currentOperation.id);
-                }
                 break;
             case 'incidents':
                 if (typeof renderIncidentsView === 'function') {
