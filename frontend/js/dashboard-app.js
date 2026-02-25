@@ -171,10 +171,10 @@ class CyberOpsPlanner {
                 break;
             case 'mdmp':
             case 'mdmp-planner':
+                // Load MDMP planner content (unified dashboard)
+                loadMDMPPlannerContent(this.currentOperation.id);
                 if (typeof renderMDMPPlanner === 'function') {
                     renderMDMPPlanner(this.currentOperation.id);
-                } else {
-                    this.loadMDMPView();
                 }
                 break;
             case 'incidents':
@@ -575,6 +575,192 @@ class CyberOpsPlanner {
             return dateStr;
         }
     }
+}
+
+/**
+ * Export MDMP annex as Word document
+ */
+async function exportAnnex(annexName, annexTitle) {
+    const statusDiv = document.getElementById('mdmp-export-status');
+    if (!statusDiv) return;
+
+    try {
+        statusDiv.innerHTML = `ℹ️ Exporting ${annexTitle}...`;
+
+        // Sample content for demonstration
+        const mdContent = `# ${annexTitle}\n\nExported from CyberOpsPlanner\n\n[Annex content would be populated from MDMP products here]`;
+
+        const response = await fetch('/api/export/annex', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                annexTitle: annexTitle,
+                annexFile: annexName,
+                mdContent: mdContent
+            })
+        });
+
+        if (!response.ok) throw new Error('Export failed');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${annexName}_${new Date().toISOString().split('T')[0]}.docx`;
+        a.click();
+
+        statusDiv.innerHTML = `✓ ${annexTitle} exported successfully`;
+        setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
+    } catch (err) {
+        statusDiv.innerHTML = `✗ Export failed: ${err.message}`;
+    }
+}
+
+/**
+ * Load and populate MDMP Planner sections in unified dashboard
+ */
+async function loadMDMPPlannerContent(opId) {
+    try {
+        // Load MDMP products
+        const productsResponse = await fetch(`/api/operations/${opId}/mdmp-products`);
+        const products = await productsResponse.json();
+
+        // Load doctrine
+        const doctrineResponse = await fetch('/api/doctrine');
+        const doctrine = await doctrineResponse.json();
+
+        // Render MDMP Flow
+        renderMDMPFlow(products);
+        renderMDMPProgress(products);
+        renderMDMPProducts(products);
+        renderMDMPDoctrine(doctrine);
+    } catch (err) {
+        console.error('Error loading MDMP content:', err);
+    }
+}
+
+/**
+ * Render MDMP process flow steps
+ */
+function renderMDMPFlow(products) {
+    const container = document.getElementById('mdmp-flow');
+    if (!container) return;
+
+    const STEPS = [
+        { num: 1, name: 'Receipt of Mission', color: '#3b82f6' },
+        { num: 2, name: 'Mission Analysis', color: '#06b6d4' },
+        { num: 3, name: 'COA Development', color: '#8b5cf6' },
+        { num: 4, name: 'COA Analysis', color: '#ec4899' },
+        { num: 5, name: 'COA Comparison', color: '#f59e0b' },
+        { num: 6, name: 'COA Approval', color: '#10b981' },
+        { num: 7, name: 'Orders Production', color: '#ef4444' }
+    ];
+
+    container.innerHTML = STEPS.map(step => {
+        const stepProducts = products.filter(p => p.step === step.num || p.step === step.num.toString());
+        return `
+            <div style="flex: 0 0 140px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid ${step.color}; border-radius: 8px; padding: 12px; text-align: center;">
+                <div style="font-size: 16px; font-weight: bold; color: ${step.color};">${step.num}</div>
+                <div style="font-size: 10px; color: #cbd5e1; margin-top: 6px;">${step.name.split(' ')[0]}</div>
+                <div style="margin-top: 6px; font-size: 9px; color: #94a3b8;">${stepProducts.length} items</div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Render MDMP progress bars
+ */
+function renderMDMPProgress(products) {
+    const container = document.getElementById('mdmp-progress');
+    if (!container) return;
+
+    const progressData = [
+        { label: 'Mission Analysis', step: 1 },
+        { label: 'COA Development', step: 3 },
+        { label: 'Wargaming', step: 4 },
+        { label: 'Decision & Orders', steps: [5,6,7] }
+    ];
+
+    container.innerHTML = progressData.map(item => {
+        const steps = Array.isArray(item.steps) ? item.steps : [item.step];
+        const stepProducts = products.filter(p => steps.includes(parseInt(p.step)) || steps.includes(p.step));
+        const percentage = Math.min(100, stepProducts.length * 25);
+
+        return `
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="color: #cbd5e1; font-size: 11px;">${item.label}</span>
+                    <span style="color: #0066cc; font-size: 10px; font-weight: bold;">${percentage}%</span>
+                </div>
+                <div style="background: rgba(100,100,100,0.2); height: 6px; border-radius: 3px; overflow: hidden;">
+                    <div style="background: #0066cc; height: 100%; width: ${percentage}%;"></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Render MDMP products by step
+ */
+function renderMDMPProducts(products) {
+    const container = document.getElementById('mdmp-products');
+    if (!container) return;
+
+    const STEPS = [
+        { num: 1, name: 'Receipt of Mission', icon: '1️⃣' },
+        { num: 2, name: 'Mission Analysis', icon: '2️⃣' },
+        { num: 3, name: 'COA Development', icon: '3️⃣' },
+        { num: 4, name: 'COA Analysis', icon: '4️⃣' },
+        { num: 5, name: 'COA Comparison', icon: '5️⃣' },
+        { num: 6, name: 'COA Approval', icon: '6️⃣' },
+        { num: 7, name: 'Orders Production', icon: '7️⃣' }
+    ];
+
+    container.innerHTML = STEPS.map(step => {
+        const stepProducts = products.filter(p => p.step === step.num || p.step === step.num.toString());
+        const list = stepProducts.length > 0
+            ? stepProducts.map(p => `<li style="color: #cbd5e1; font-size: 10px; margin-bottom: 4px;">✓ ${p.name || p.file}</li>`).join('')
+            : '<li style="color: #94a3b8; font-size: 10px;">No products yet</li>';
+
+        return `
+            <div style="background: rgba(100,150,200,0.05); border: 1px solid rgba(100,150,200,0.2); border-radius: 6px; padding: 12px;">
+                <div style="color: #0066cc; font-weight: bold; font-size: 11px; margin-bottom: 8px;">${step.icon} Step ${step.num}</div>
+                <ul style="list-style: none; margin: 0; padding: 0;">${list}</ul>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Render doctrine references for MDMP planner
+ */
+function renderMDMPDoctrine(doctrine) {
+    const container = document.getElementById('mdmp-doctrine');
+    if (!container || !doctrine.mdmpSteps) return;
+
+    const html = Array.from({ length: 7 }, (_, i) => {
+        const step = i + 1;
+        const stepData = doctrine.mdmpSteps[step];
+        if (!stepData || !stepData.references) return '';
+
+        const refsHtml = stepData.references.map(ref => `
+            <div style="background: rgba(0,102,204,0.08); border-left: 2px solid #0066cc; padding: 8px; margin-bottom: 6px; border-radius: 3px; font-size: 9px;">
+                <div style="color: #0066cc; font-weight: bold;">${ref.publication}</div>
+                <div style="color: #cbd5e1; margin-top: 2px;">${ref.section.substring(0, 40)}...</div>
+            </div>
+        `).join('');
+
+        return `
+            <div style="background: rgba(0,102,204,0.05); border: 1px solid rgba(0,102,204,0.2); border-radius: 6px; padding: 10px;">
+                <div style="color: #0066cc; font-weight: bold; font-size: 10px; margin-bottom: 8px;">📚 Step ${step}</div>
+                ${refsHtml}
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html || '<div style="color: #94a3b8;">Loading doctrine references...</div>';
 }
 
 // Initialize dashboard when page loads
