@@ -222,18 +222,45 @@ This document defines the **7-Step Incident Response Framework** used across all
 
 ## 6. PLAYBOOK LIBRARY INDEX
 
-| Playbook | File | Primary Role | Primary Steps |
-|----------|------|--------------|---------------|
-| Malware Triage | `playbook-malware-triage-7step.md` | Host Analyst | 2, 3 |
-| Malware Outbreak | `playbook-malware-outbreak-7step.md` | Host Analyst | 3, 4 |
-| Ransomware Response | `playbook-ransomware-7step.md` | Host Analyst + Planner | 3, 4, 5 |
-| Command & Control Response | `playbook-c2-response-7step.md` | Network Analyst | 2, 3 |
-| Lateral Movement Response | `playbook-lateral-movement-7step.md` | Network Analyst | 2, 3 |
-| Credential Theft Response | `playbook-credential-theft-7step.md` | Host Analyst | 3, 4 |
-| Data Exfiltration Response | `playbook-data-exfiltration-7step.md` | Network Analyst | 3, 4 |
-| Denial of Service Response | `playbook-denial-of-service-7step.md` | Network Analyst | 3 |
-| Privilege Escalation Response | `playbook-privilege-escalation-7step.md` | Host Analyst | 2, 3 |
-| Persistence Response | `playbook-persistence-7step.md` | Host Analyst | 2, 4 |
+### 6.1 Reactive Threat Playbooks (IR-PB-001 through IR-PB-010)
+
+| ID | Playbook | File | Primary Role | Primary Steps |
+|----|----------|------|:------------:|:-------------:|
+| PB-001 | Malware Triage | `playbook-malware-triage-7step.md` | Host Analyst | 2, 3 |
+| PB-002 | Malware Outbreak | `playbook-malware-outbreak-7step.md` | Host Analyst | 3, 4 |
+| PB-003 | Ransomware Response | `playbook-ransomware-7step.md` | Host Analyst + IC | 3, 4, 5 |
+| PB-004 | Command & Control Response | `playbook-c2-response-7step.md` | Network Analyst | 2, 3 |
+| PB-005 | Lateral Movement Response | `playbook-lateral-movement-7step.md` | Network Analyst | 2, 3 |
+| PB-006 | Credential Theft Response | `playbook-credential-theft-7step.md` | Host Analyst | 3, 4 |
+| PB-007 | Data Exfiltration Response | `playbook-data-exfiltration-7step.md` | Network Analyst | 3, 4 |
+| PB-008 | Denial of Service Response | `playbook-denial-of-service-7step.md` | Network Analyst | 3 |
+| PB-009 | Privilege Escalation Response | `playbook-privilege-escalation-7step.md` | Host Analyst | 2, 3 |
+| PB-010 | Persistence Response | `playbook-persistence-7step.md` | Host Analyst | 2, 4 |
+
+### 6.2 Expanded Threat Playbooks (IR-PB-011 through IR-PB-015)
+
+| ID | Playbook | File | Primary Role | Primary Steps |
+|----|----------|------|:------------:|:-------------:|
+| PB-011 | Phishing & Initial Access via Email | `playbook-phishing-response-7step.md` | Host Analyst + Tier 1 SOC | 2, 3 |
+| PB-012 | Insider Threat Response | `playbook-insider-threat-7step.md` | IC + Legal (Co-Lead) | 2, 3 |
+| PB-013 | Web Application Attack Response | `playbook-web-application-attack-7step.md` | Network Analyst | 2, 3 |
+| PB-014 | Cloud / SaaS Compromise Response | `playbook-cloud-saas-compromise-7step.md` | Network Analyst | 3, 4 |
+| PB-015 | OT / ICS Incident Response | `playbook-ot-ics-incident-response-7step.md` | Network Analyst + Mission Owner | 2, 3 |
+
+### 6.3 Supporting / Process Playbooks (IR-PB-016 through IR-PB-018)
+
+| ID | Playbook | File | Primary Role | When to Use |
+|----|----------|------|:------------:|-------------|
+| PB-016 | Digital Forensics & Evidence Collection | `playbook-digital-forensics-evidence-collection-7step.md` | Host Analyst | Any incident requiring forensic collection |
+| PB-017 | Threat Hunt | `playbook-threat-hunt-7step.md` | S-2 + Host/Net Analyst | Proactive — between incidents |
+| PB-018 | Incident Commander Battle Rhythm | `playbook-incident-commander-battle-rhythm-7step.md` | Mission OIC / IC | Governs ALL incidents |
+
+### 6.4 Reference Documents
+
+| Document | File | Purpose |
+|----------|------|---------|
+| IR Team Entity Reference | `IR-Team-Entity-Reference.md` | Role definitions, authorities, full playbook ownership matrix |
+| IR Framework Overview (this document) | `IR-Framework-7-Step-Overview.md` | Framework reference, step definitions, decision authority |
 
 ---
 
