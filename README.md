@@ -14,11 +14,15 @@ npm install  # First time only
 node server.js
 ```
 
-Access:
-- **Unified Dashboard:** http://localhost:3000/
-- **MDMP Planner:** http://localhost:3000/mdmp-dashboard.html
-- **Network Map:** http://localhost:3000/network-map.html
-- **IR Playbooks:** http://localhost:3000/ir-playbook-dashboard.html
+**Access the unified dashboard:**
+- **Main Dashboard:** http://localhost:3000/
+  - 📊 Overview — Operation status, phase timeline, key metrics
+  - 📋 MDMP Planner — 7-step visualization, products by step, doctrine references, export annexes
+  - 🚨 Incidents — Real-time incident tracking by severity
+  - ✓ POAMs — NIST 800-171 remediation tracking
+  - 🔗 Network — Multi-layer threat visualization (physical, logical, persona)
+  - 🔍 Intelligence — Threat analysis and CTI integration
+  - 🛡️ IR Playbooks — Separate dashboard at http://localhost:3000/ir-playbook-dashboard.html
 
 **Use Claude AI roles:**
 ```bash
@@ -134,12 +138,13 @@ See [docs/roles/ROLES.md](./docs/roles/ROLES.md) for role switching guide and [d
 
 ## Workflows
 
-**MDMP Planning with Export:**
-1. Open http://localhost:3000/mdmp-dashboard.html
-2. Fill out planning products by step (1-7)
-3. Request Claude review: "Review my COA analysis for gaps"
-4. Click "Export Annex M" → Get military-compliant Word document
-5. Upload to HQ
+**MDMP Planning with Export (Unified Dashboard):**
+1. Open http://localhost:3000/ and select operation
+2. Click 📋 **MDMP Planner** tab
+3. View all 7 steps with product counts, progress bars, and doctrine references
+4. View MDMP products by step or click "Export Annex M/A" for Word documents
+5. Request Claude review: "Review my COA analysis for gaps"
+6. Export and upload to HQ
 
 **Multi-Role Threat Analysis:**
 1. Paste endpoint artifact → Claude (host analyst): Identifies baseline deviations, persistence
@@ -147,13 +152,21 @@ See [docs/roles/ROLES.md](./docs/roles/ROLES.md) for role switching guide and [d
 3. Back to planner → Develops threat COA with decision points and indicators
 4. Save to `operation/OP-[NAME]/INTELLIGENCE/threat-coa.md`
 
-**Incident Response with Playbooks:**
-1. Detect incident → Create ticket in dashboard
-2. Identify threat type (malware, C2, lateral movement, etc.)
-3. Pull applicable playbook from `docs/technical/SOP/`
-4. Request Claude analysis (host analyst or network analyst)
-5. Execute response following playbook procedures
-6. Document outcome for post-incident review
+**Incident Response with Playbooks (Unified Dashboard):**
+1. Open http://localhost:3000/ → 🚨 **Incidents** tab
+2. Create new incident or select existing
+3. Identify threat type (malware, C2, lateral movement, etc.)
+4. Pull applicable playbook from `docs/technical/SOP/`
+5. Request Claude analysis (host analyst or network analyst)
+6. Update incident ticket with response actions
+7. Document outcome in `operation/OP-[NAME]/EXECUTION/`
+
+**Network Threat Visualization:**
+1. Open http://localhost:3000/ → 🔗 **Network** tab
+2. Import network CSV or view existing topology
+3. Switch between Physical, Logical, and Persona layers
+4. Identify key terrain, critical paths, choke points
+5. Export topology for threat modeling analysis
 
 See [docs/guides/operations/MULTI-OPERATION-GUIDE.md](./docs/guides/operations/MULTI-OPERATION-GUIDE.md) for complete workflows.
 

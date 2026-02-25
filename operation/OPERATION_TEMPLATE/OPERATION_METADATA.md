@@ -301,6 +301,57 @@ operation/OP-[CODE]_[TYPE]_[DATE]/
 
 ---
 
+## USING CYBERPLANNER DASHBOARD
+
+This operation is tracked and managed through the unified **CyberOpsPlanner Dashboard** at `http://localhost:3000/`.
+
+**Dashboard Tabs (Select this operation in the dropdown):**
+
+1. **📊 Overview**
+   - Operation status and phase timeline
+   - Key metrics: MDMP products, POAMs, incidents, status
+   - Phase context and recommendations
+   - Operation details and metadata
+
+2. **📋 MDMP Planner** (if operation includes planning phase)
+   - 7-step MDMP visualization with product counts
+   - Progress bars: Mission Analysis, COA Development, Wargaming, Decision & Orders
+   - MDMP products organized by step
+   - Export AR 25-50 compliant Annex M & A documents
+   - Integrated doctrine references for each step
+
+3. **🚨 Incidents** (if operation includes incident response)
+   - Create and track incidents
+   - Filter by severity (critical, high, medium, low)
+   - Link to affected assets and response status
+   - Generate incident reports
+
+4. **✓ POAMs** (if operation includes remediation tracking)
+   - Track Plans of Action and Milestones
+   - NIST SP 800-171 compliance format
+   - Filter by status (open, in-progress, complete) and priority
+   - Monitor completion dates and interim milestones
+
+5. **🔗 Network** (if operation includes network analysis)
+   - Multi-layer threat visualization (physical, logical, persona)
+   - Import network CSV data
+   - Identify key terrain and critical paths
+   - Export topology for threat modeling
+
+6. **🔍 Intelligence**
+   - View threat analysis summaries
+   - Integrated doctrine references by analyst role
+   - CTI integration and threat COA assessments
+
+**Workflow:**
+1. Start server: `node server.js`
+2. Open `http://localhost:3000/`
+3. Select this operation from dropdown
+4. Use tabs to manage operation products, incidents, POAMs, and intelligence
+5. Click "Refresh" button to reload operation data from filesystem
+
+---
+
 ## STATUS TRACKING
 
 **Current Status:** [Planning / In Progress / Post-Op / Archived]
