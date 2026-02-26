@@ -25,6 +25,13 @@
         .header-title { font-size: 24px; font-weight: bold; color: #fff; }
         .header-subtitle { font-size: 11px; color: #94a3b8; margin-top: 3px; }
         .header-nav { display: flex; gap: 12px; align-items: center; }
+        .operation-select {
+            background: rgba(15,23,42,0.6); border: 1px solid rgba(100,150,200,0.3);
+            color: #e2e8f0; padding: 7px 12px; border-radius: 6px; font-size: 13px;
+            cursor: pointer; min-width: 220px; max-width: 300px;
+        }
+        .operation-select option { background: #1e293b; }
+        .operation-select:hover { border-color: #0066cc; background: rgba(15,23,42,0.8); }
         .nav-link {
             color: #94a3b8; text-decoration: none; font-size: 13px;
             padding: 6px 14px; border-radius: 6px;
@@ -222,9 +229,10 @@
             <div class="header-subtitle">UNCLASSIFIED // FOUO &nbsp;|&nbsp; Incident Response Playbook Library &nbsp;|&nbsp; 7-Step Framework &nbsp;|&nbsp; CJCSM 6510.01B</div>
         </div>
         <div class="header-nav">
-            <a href="/" class="nav-link">Ops Dashboard</a>
-            <a href="/mdmp-dashboard.html" class="nav-link">MDMP Planner</a>
-            <a href="/network-map.html" class="nav-link">Network Map</a>
+            <select id="operation-selector" class="operation-select">
+                <option value="">Select Operation...</option>
+            </select>
+            <a href="/" class="nav-link">Main Dashboard</a>
         </div>
         <div class="header-stats">
             <div class="stat-box"><div class="stat-number">18</div><div class="stat-label">Playbooks</div></div>
@@ -633,22 +641,40 @@ function openNewIncident() {
 function createIncident() {
     const title = document.getElementById('inc-title').value.trim();
     if (!title) { showNotif('Incident title is required.', true); return; }
-    const id = 'IR-' + String(Date.now()).slice(-6);
-    incidents.push({
-        id, title,
-        cat: document.getElementById('inc-cat').value,
-        playbook: document.getElementById('inc-playbook').value,
-        system: document.getElementById('inc-system').value,
-        ic: document.getElementById('inc-ic').value,
-        notes: document.getElementById('inc-notes').value,
-        opened: new Date().toLocaleString(),
-        steps: Array(7).fill('pending')
+    if (!selectedOperation) { showNotif('Please select an operation first.', true); return; }
+
+    const incidentData = {
+        title: title,
+        severity: document.getElementById('inc-cat').value || 'medium',
+        affectedAssets: document.getElementById('inc-system').value || 'TBD',
+        vector: document.getElementById('inc-playbook').value || 'TBD',
+        description: document.getElementById('inc-notes').value || title,
+        containmentStatus: 'Ongoing'
+    };
+
+    // Send to API
+    fetch(`/api/operations/${selectedOperation}/incidents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(incidentData)
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.success || result.id) {
+            showNotif(`Incident ${result.id} created in ${selectedOperation}`);
+            closeModal();
+            renderIncidents();
+            // Switch to active tab
+            const tabActive = document.querySelector('[data-tab="active"]');
+            if (tabActive) switchTab('active');
+        } else {
+            showNotif('Error creating incident: ' + (result.error || 'Unknown'), true);
+        }
+    })
+    .catch(err => {
+        showNotif('Error creating incident: ' + err, true);
+        console.error('Incident creation error:', err);
     });
-    saveIncidents();
-    renderIncidents();
-    closeModal();
-    document.getElementById('tab-active').classList.add('active');
-    showNotif('Incident ' + id + ' opened.');
 }
 
 function activatePlaybook(pbId) {
@@ -700,12 +726,56 @@ function showNotif(msg, isError) {
     setTimeout(() => { n.className = 'notification'; }, 3000);
 }
 
+// ─── OPERATION MANAGEMENT ───────────────────────────────────────────────────
+
+let selectedOperation = null;
+
+async function loadOperations() {
+    try {
+        const response = await fetch('/api/operations');
+        const operations = await response.json();
+        const selector = document.getElementById('operation-selector');
+
+        // Clear existing options except first
+        while (selector.options.length > 1) {
+            selector.remove(1);
+        }
+
+        // Add operations
+        operations.forEach(op => {
+            const option = document.createElement('option');
+            option.value = op.id;
+            option.textContent = `${op.name} (${op.id})`;
+            selector.appendChild(option);
+        });
+
+        // Load first operation by default
+        if (operations.length > 0) {
+            selector.value = operations[0].id;
+            selectedOperation = operations[0].id;
+            console.log('✓ Operations loaded. Default:', selectedOperation);
+        }
+    } catch (err) {
+        console.error('Error loading operations:', err);
+    }
+}
+
+document.getElementById('operation-selector').addEventListener('change', (e) => {
+    selectedOperation = e.target.value;
+    console.log('Selected operation:', selectedOperation);
+});
+
 // ─── INIT ────────────────────────────────────────────────────────────────────
 
-renderLibrary();
-renderTeam();
-renderStepsRef();
-renderIncidents();
+async function initDashboard() {
+    await loadOperations();
+    renderLibrary();
+    renderTeam();
+    renderStepsRef();
+    renderIncidents();
+}
+
+initDashboard();
 </script>
 </body>
 </html>

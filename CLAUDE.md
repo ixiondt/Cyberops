@@ -70,9 +70,7 @@ See [docs/roles/ROLES.md](./docs/roles/ROLES.md) for full role documentation and
 **Start dashboards:** `npm install && node server.js` → Access at `http://localhost:3000`
 
 **Dashboards:**
-- **MDMP Planner:** `/mdmp-dashboard.html` — 7-step planning, products, Word export
-- **Operations:** `/` — Incidents, POAMs, network visualization, timeline
-- **Network Map:** `/network-map.html` — Threat visualization, layers, CSV I/O
+- **Main Dashboard:** `/` — All tabs: Overview, MDMP Planner, Incidents, POAMs, Network, Intelligence (dynamic operation selector)
 - **IR Playbooks:** `/ir-playbook-dashboard.html` — Standardized response workflows
 
 **Word Export:** Click "Export" on MDMP products → AR 25-50 compliant .docx (Annex M, Annex A)
@@ -124,13 +122,13 @@ See [docs/guides/operations/MULTI-OPERATION-GUIDE.md](./docs/guides/operations/M
 | Task | Command |
 |------|---------|
 | **Start dashboards** | `node server.js` → `http://localhost:3000` |
-| **Use MDMP planner** | Open `http://localhost:3000/mdmp-dashboard.html` → select steps → add deliverables |
+| **Use MDMP planner** | Open `http://localhost:3000` → "MDMP Planner" tab → select steps → add deliverables |
 | **Get AI planning help** | `claude code .` → request cyber running estimate, COA analysis, threat assessment |
 | **Switch analyst roles** | "Switch to host analyst mode" or "Network analyst perspective" |
 | **Track incidents** | Open `http://localhost:3000/` → "Incidents" tab → create/update |
 | **Export annex** | Click "Export Annex M" or "Export Annex A" button in MDMP Planner |
 | **Create new operation** | `cp -r operation/OPERATION_TEMPLATE operation/OP-[NAME]` → edit metadata |
-| **View network map** | Open `http://localhost:3000/network-map.html` → upload CSV or switch layers |
+| **View network map** | Open `http://localhost:3000` → "Network" tab → upload CSV or switch layers |
 
 ---
 
