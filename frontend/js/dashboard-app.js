@@ -197,6 +197,16 @@ class CyberOpsPlanner {
             case 'intelligence':
                 this.loadIntelligenceView();
                 break;
+            case 'staff-products':
+                if (typeof renderStaffProductsView === 'function') {
+                    renderStaffProductsView(this.currentOperation.id);
+                }
+                break;
+            case 'sync-matrix':
+                if (typeof renderSyncMatrixView === 'function') {
+                    renderSyncMatrixView(this.currentOperation.id);
+                }
+                break;
         }
     }
 

@@ -53,11 +53,18 @@ CyberPlanner/
 │   ├── LICENSE.md                   ← Usage terms
 │   └── PROJECT_GUIDE.md             ← This file
 │
-├── 👥 PERSONNEL / ROLES (YAML)
-│   └── docs/personnel/
-│       ├── skill-cyberopsplanner.yaml   ← Planner role system prompt
-│       ├── skill-host-analyst.yaml      ← Host analyst system prompt
-│       └── skill-network-analyst.yaml   ← Network analyst system prompt
+├── 👥 ROLES (YAML)
+│   └── docs/roles/
+│       ├── skill-cyberopsplanner.yaml   ← Cyber Ops Planner role
+│       ├── skill-host-analyst.yaml      ← 17C Host Analyst role
+│       ├── skill-network-analyst.yaml   ← 17C Network Analyst role
+│       ├── skill-g2-intelligence.yaml   ← G2 Intelligence Officer role
+│       ├── skill-g3-operations.yaml     ← G3 Operations Officer role
+│       ├── skill-g4-logistics.yaml      ← G4 Logistics Officer role
+│       ├── skill-g6-signal.yaml         ← G6 Signal Officer role
+│       ├── skill-fires.yaml             ← FSCOORD Fires Officer role
+│       ├── skill-engineer.yaml          ← ENCOORD Engineer Officer role
+│       └── skill-protection.yaml        ← Protection Officer role
 │
 ├── 🖥️ DASHBOARDS & FRONTEND
 │   ├── frontend/                    ← Frontend files served by Node.js
@@ -141,7 +148,7 @@ CyberPlanner/
 
 **Purpose:** Define specialized analyst roles that users can switch between
 
-**Files:** Located in `docs/personnel/`
+**Files:** Located in `docs/roles/`
 - `skill-cyberopsplanner.yaml` (3,059 bytes)
 - `skill-host-analyst.yaml` (2,537 bytes)
 - `skill-network-analyst.yaml` (2,789 bytes)

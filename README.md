@@ -108,33 +108,31 @@ CyberOpsPlanner/
 
 ---
 
-## Three Specialized AI Roles
+## Ten Specialized AI Roles
 
-Role definitions located in `docs/personnel/` and auto-loaded by Claude Code:
+Role definitions located in `docs/roles/` and auto-loaded by Claude Code:
 
-1. **Cyber Operations Planner** (default)
-   - MDMP planning, running estimates, COA analysis, cyber effects integration
-   - Doctrine-grounded (ADP 5-0, FM 3-12, JP 3-12)
-   - File: [skill-cyberopsplanner.yaml](./docs/personnel/skill-cyberopsplanner.yaml)
-
-2. **17C Host Analyst**
-   - Endpoint forensics, artifact analysis, forensic timelines, baseline deviations
-   - Incident response triage and detection support
-   - File: [skill-host-analyst.yaml](./docs/personnel/skill-host-analyst.yaml)
-
-3. **17C Network Analyst**
-   - Traffic pattern analysis, beaconing/C2 detection, lateral movement assessment
-   - Detection logic and network architecture analysis
-   - File: [skill-network-analyst.yaml](./docs/personnel/skill-network-analyst.yaml)
+| Role | Aliases | Key Focus |
+|------|---------|-----------|
+| **Cyber Operations Planner** (default) | coop, cyber-planner | MDMP planning, cyber effects integration |
+| **17C Host Analyst** | 17c-host, host-analysis | Endpoint forensics, artifact analysis |
+| **17C Network Analyst** | 17c-network, traffic-analyst | Traffic analysis, C2 detection |
+| **G2 Intelligence Officer** | g2, s2, intelligence | IPB, collection management, threat COAs |
+| **G3 Operations Officer** | g3, s3, operations | MDMP execution, task org, sync matrices |
+| **G4 Logistics Officer** | g4, s4, logistics | Supply, maintenance, distribution |
+| **G6 Signal Officer** | g6, s6, signal, comms | PACE plans, network architecture |
+| **FSCOORD (Fires)** | fscoord, fires, targeting | Fire support planning, D3A/F3EAD |
+| **ENCOORD (Engineer)** | encoord, engineer, sapper | Mobility, countermobility, obstacles |
+| **Protection Officer** | protection, force-protection | CAL/DAL, risk management, OPSEC |
 
 **Switch roles anytime:**
 ```
-"Switch to host analyst mode"
-"Network analyst perspective on this traffic"
-"Back to planner — develop threat COA"
+"Switch to G2 mode"
+"FSCOORD perspective on targeting"
+"Act as the engineer for obstacle planning"
 ```
 
-See [docs/roles/ROLES.md](./docs/roles/ROLES.md) for role switching guide and [docs/personnel/](./docs/personnel/) for role definitions.
+See [docs/roles/ROLES.md](./docs/roles/ROLES.md) for full role switching guide and role definitions.
 
 ---
 

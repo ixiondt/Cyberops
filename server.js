@@ -23,6 +23,9 @@ try {
   console.warn('⚠️  docx library not installed. Run "npm install" for Word export functionality.');
 }
 
+// Staff section configuration (single source of truth)
+const { STAFF_SECTIONS, ANNEX_MAP } = require('./config/staff-sections');
+
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
 const OPERATIONS_DIR = path.join(__dirname, 'operation');
@@ -985,6 +988,231 @@ function updateOperationPhase(opId, phaseId) {
     }
 }
 
+// ============================================
+// STAFF SECTION PRODUCT FUNCTIONS
+// ============================================
+
+/**
+ * Get all products for a staff section within an operation
+ */
+function getStaffProducts(opId, sectionCode) {
+    try {
+        const products = [];
+        const section = STAFF_SECTIONS[sectionCode];
+        if (!section) return [];
+
+        // Primary path: STAFF/{code}/products/
+        const staffDir = path.join(OPERATIONS_DIR, opId, 'STAFF', sectionCode, 'products');
+        if (fs.existsSync(staffDir)) {
+            const files = fs.readdirSync(staffDir);
+            files.forEach(file => {
+                if (!file.endsWith('.md')) return;
+                const filePath = path.join(staffDir, file);
+                const stat = fs.statSync(filePath);
+                const content = fs.readFileSync(filePath, 'utf8');
+
+                let title = file.replace('.md', '').replace(/_/g, ' ');
+                let status = 'draft';
+                let step = null;
+                let owner = '';
+
+                const metaMatch = content.match(/<!-- METADATA\s*([\s\S]*?)-->/);
+                if (metaMatch) {
+                    const mc = metaMatch[1];
+                    const titleMatch = mc.match(/title:\s*(.+)/);
+                    const statusMatch = mc.match(/status:\s*(.+)/);
+                    const stepMatch = mc.match(/step:\s*(\d+)/);
+                    const ownerMatch = mc.match(/owner:\s*(.+)/);
+                    if (titleMatch) title = titleMatch[1].trim();
+                    if (statusMatch) status = statusMatch[1].trim();
+                    if (stepMatch) step = parseInt(stepMatch[1]);
+                    if (ownerMatch) owner = ownerMatch[1].trim();
+                }
+
+                const headingMatch = content.match(/^#\s+(.+)$/m);
+                if (headingMatch) title = headingMatch[1];
+
+                products.push({
+                    id: path.basename(file, '.md'),
+                    title,
+                    status,
+                    step,
+                    owner,
+                    sectionCode,
+                    created: stat.birthtime.toISOString(),
+                    lastUpdated: stat.mtime.toISOString(),
+                    filePath: path.relative(OPERATIONS_DIR, filePath),
+                    size: stat.size
+                });
+            });
+        }
+
+        // Legacy path for CYBER section: also scan PLANNING/, INTELLIGENCE/, OPERATIONS/
+        if (section.legacy) {
+            const legacyProducts = getMDMPProducts(opId);
+            legacyProducts.forEach(p => {
+                // Avoid duplicates
+                if (!products.find(existing => existing.id === p.id)) {
+                    products.push({ ...p, sectionCode: 'CYBER', legacy: true });
+                }
+            });
+        }
+
+        return products.sort((a, b) => a.created.localeCompare(b.created));
+    } catch (err) {
+        console.error(`Error getting staff products for ${opId}/${sectionCode}:`, err);
+        return [];
+    }
+}
+
+/**
+ * Create a new staff product
+ */
+function createStaffProduct(opId, sectionCode, productData) {
+    try {
+        const section = STAFF_SECTIONS[sectionCode];
+        if (!section) {
+            return { success: false, error: `Unknown staff section: ${sectionCode}` };
+        }
+
+        const productDir = path.join(OPERATIONS_DIR, opId, 'STAFF', sectionCode, 'products');
+        if (!fs.existsSync(productDir)) {
+            fs.mkdirSync(productDir, { recursive: true });
+        }
+
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const filenameSafe = (productData.title || 'Product')
+            .replace(/\s+/g, '_')
+            .replace(/[^a-zA-Z0-9_-]/g, '')
+            .substring(0, 40);
+        const filename = `${sectionCode}-${dateStr}_${filenameSafe}.md`;
+        const filePath = path.join(productDir, filename);
+
+        const step = productData.step || '';
+        const content = `<!-- METADATA
+sectionCode: ${sectionCode}
+title: ${productData.title || 'Untitled Product'}
+created: ${dateStr}
+status: draft
+step: ${step}
+owner: ${productData.owner || 'TBD'}
+-->
+
+# ${productData.title || 'Untitled Product'}
+
+**Staff Section:** ${section.name} (${sectionCode})
+**Status:** Draft
+**Created:** ${dateStr}
+${step ? `**MDMP Step:** ${step}` : ''}
+
+## Overview
+
+${productData.description || `${section.name} product for the current operation.`}
+
+## Key Points
+
+- Point 1
+- Point 2
+- Point 3
+
+## Recommendations
+
+To be completed...
+
+---
+
+UNCLASSIFIED // FOUO | CyberOpsPlanner | ${dateStr}
+`;
+
+        fs.writeFileSync(filePath, content, 'utf8');
+
+        return {
+            success: true,
+            id: path.basename(filename, '.md'),
+            filename,
+            filePath: path.relative(OPERATIONS_DIR, filePath),
+            message: `${section.name} product created successfully`
+        };
+    } catch (err) {
+        console.error(`Error creating staff product for ${opId}/${sectionCode}:`, err);
+        return { success: false, error: err.message };
+    }
+}
+
+/**
+ * Delete a staff product
+ */
+function deleteStaffProduct(opId, sectionCode, productId) {
+    try {
+        const productDir = path.join(OPERATIONS_DIR, opId, 'STAFF', sectionCode, 'products');
+        if (!fs.existsSync(productDir)) {
+            return { success: false, error: `Product directory not found` };
+        }
+
+        const files = fs.readdirSync(productDir);
+        const productFile = files.find(f => f.includes(productId));
+        if (!productFile) {
+            return { success: false, error: `Product ${productId} not found` };
+        }
+
+        fs.unlinkSync(path.join(productDir, productFile));
+        return { success: true, id: productId, message: `Product deleted successfully` };
+    } catch (err) {
+        console.error(`Error deleting staff product:`, err);
+        return { success: false, error: err.message };
+    }
+}
+
+/**
+ * Get annex status for all annexes in an operation
+ */
+function getAnnexStatus(opId) {
+    const annexes = [];
+    for (const [letter, info] of Object.entries(ANNEX_MAP)) {
+        const annex = {
+            letter,
+            title: info.title,
+            owner: info.owner,
+            description: info.description,
+            status: 'not_started',
+            filePath: null
+        };
+
+        // Check STAFF/{owner}/annexes/ first
+        if (info.owner && STAFF_SECTIONS[info.owner]) {
+            const annexPath = path.join(OPERATIONS_DIR, opId, 'STAFF', info.owner, 'annexes', `Annex_${letter}_${info.title.replace(/\s+/g, '_')}.md`);
+            if (fs.existsSync(annexPath)) {
+                annex.status = 'exists';
+                annex.filePath = path.relative(OPERATIONS_DIR, annexPath);
+            }
+        }
+
+        // Fallback: check OPERATIONS/ for legacy files
+        if (!annex.filePath) {
+            const opsDir = path.join(OPERATIONS_DIR, opId, 'OPERATIONS');
+            if (fs.existsSync(opsDir)) {
+                const files = fs.readdirSync(opsDir);
+                const match = files.find(f => {
+                    const fl = f.toLowerCase();
+                    if (fl.includes(`annex_${letter.toLowerCase()}`) || fl.includes(`annex-${letter.toLowerCase()}`)) return true;
+                    // Legacy name mappings
+                    if (letter === 'M' && fl.includes('cyber_annex')) return true;
+                    if (letter === 'A' && fl.includes('task_organization')) return true;
+                    return false;
+                });
+                if (match) {
+                    annex.status = 'exists';
+                    annex.filePath = path.relative(OPERATIONS_DIR, path.join(opsDir, match));
+                }
+            }
+        }
+
+        annexes.push(annex);
+    }
+    return annexes;
+}
+
 // AR 25-50 compliance helper function
 function createAr25_50Document(annexTitle, annexFile, mdContent) {
     if (!docx) {
@@ -1272,26 +1500,53 @@ async function handleApiRequest(pathname, req, res) {
             return;
         }
 
-        // Map annex names to file paths
-        const annexMap = {
-            'ANNEX-M': {
-                file: `operation/${operationId}/OPERATIONS/Cyber_Annex_Operational_Focus_2026-02-23.md`,
-                title: 'ANNEX M: CYBER OPERATIONS ANNEX'
-            },
-            'ANNEX-A': {
-                file: `operation/${operationId}/OPERATIONS/Task_Organization_Summary_2026-02-23.md`,
-                title: 'ANNEX A: TASK ORGANIZATION'
-            }
-        };
+        // Dynamic annex lookup from config
+        const annexLetter = annexName.replace('ANNEX-', '');
+        const annexConfig = ANNEX_MAP[annexLetter];
 
-        const annexInfo = annexMap[annexName];
-        if (!annexInfo) {
+        if (!annexConfig) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: `Unknown annex: ${annexName}` }));
             return;
         }
 
-        const annexPath = path.join(__dirname, annexInfo.file);
+        const annexTitle = `ANNEX ${annexLetter}: ${annexConfig.title.toUpperCase()}`;
+
+        // Search for annex file: STAFF/{owner}/annexes/ first, then OPERATIONS/ fallback
+        let annexPath = null;
+        const owner = annexConfig.owner;
+
+        if (owner && STAFF_SECTIONS[owner]) {
+            const staffAnnexPath = path.join(OPERATIONS_DIR, operationId, 'STAFF', owner, 'annexes');
+            if (fs.existsSync(staffAnnexPath)) {
+                const files = fs.readdirSync(staffAnnexPath);
+                const match = files.find(f => f.startsWith(`Annex_${annexLetter}`));
+                if (match) annexPath = path.join(staffAnnexPath, match);
+            }
+        }
+
+        // Fallback: OPERATIONS/ folder for legacy files
+        if (!annexPath) {
+            const opsDir = path.join(OPERATIONS_DIR, operationId, 'OPERATIONS');
+            if (fs.existsSync(opsDir)) {
+                const files = fs.readdirSync(opsDir);
+                const match = files.find(f =>
+                    f.toLowerCase().includes(`annex_${annexLetter.toLowerCase()}`) ||
+                    f.toLowerCase().includes(`annex-${annexLetter.toLowerCase()}`) ||
+                    (annexLetter === 'M' && f.toLowerCase().includes('cyber_annex')) ||
+                    (annexLetter === 'A' && f.toLowerCase().includes('task_organization'))
+                );
+                if (match) annexPath = path.join(opsDir, match);
+            }
+        }
+
+        if (!annexPath) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Annex ${annexLetter} file not found. Create the annex first.` }));
+            return;
+        }
+
+        const annexInfo = { title: annexTitle, file: path.relative(__dirname, annexPath) };
 
         try {
             const mdContent = fs.readFileSync(annexPath, 'utf8');
@@ -1449,7 +1704,10 @@ async function handleApiRequest(pathname, req, res) {
         req.on('data', chunk => {
             body += chunk.toString();
             if (body.length > 1024 * 1024) {
-                req.connection.destroy();
+                res.writeHead(413, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Payload too large' }));
+                req.socket.destroy();
+                return;
             }
         });
 
@@ -1479,7 +1737,10 @@ async function handleApiRequest(pathname, req, res) {
         req.on('data', chunk => {
             body += chunk.toString();
             if (body.length > 1024 * 1024) {
-                req.connection.destroy();
+                res.writeHead(413, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Payload too large' }));
+                req.socket.destroy();
+                return;
             }
         });
 
@@ -1541,7 +1802,10 @@ async function handleApiRequest(pathname, req, res) {
         req.on('data', chunk => {
             body += chunk.toString();
             if (body.length > 1024 * 1024) {
-                req.connection.destroy();
+                res.writeHead(413, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Payload too large' }));
+                req.socket.destroy();
+                return;
             }
         });
 
@@ -1637,7 +1901,10 @@ async function handleApiRequest(pathname, req, res) {
         req.on('data', chunk => {
             body += chunk.toString();
             if (body.length > 1024 * 1024) {
-                req.connection.destroy();
+                res.writeHead(413, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Payload too large' }));
+                req.socket.destroy();
+                return;
             }
         });
 
@@ -1669,6 +1936,102 @@ async function handleApiRequest(pathname, req, res) {
             res.end(JSON.stringify(result, null, 2));
         } catch (err) {
             console.error('Error deleting MDMP product:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
+    // ============================================
+    // STAFF SECTION API ENDPOINTS
+    // ============================================
+
+    // GET /api/staff-sections - Get all staff section configs
+    if (pathname === '/api/staff-sections') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ sections: STAFF_SECTIONS, annexMap: ANNEX_MAP }, null, 2));
+        return;
+    }
+
+    // GET /api/operations/{opId}/staff/{code}/products - List products for section
+    if (pathname.match(/^\/api\/operations\/[^/]+\/staff\/[^/]+\/products$/) && req.method === 'GET') {
+        const pathParts = pathname.split('/');
+        const opId = pathParts[3];
+        const sectionCode = pathParts[5];
+
+        try {
+            const products = getStaffProducts(opId, sectionCode);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(products, null, 2));
+        } catch (err) {
+            console.error(`Error getting staff products:`, err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
+    // POST /api/operations/{opId}/staff/{code}/products - Create product for section
+    if (pathname.match(/^\/api\/operations\/[^/]+\/staff\/[^/]+\/products$/) && req.method === 'POST') {
+        const pathParts = pathname.split('/');
+        const opId = pathParts[3];
+        const sectionCode = pathParts[5];
+        let body = '';
+
+        req.on('data', chunk => {
+            body += chunk.toString();
+            if (body.length > 1024 * 1024) {
+                res.writeHead(413, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Payload too large' }));
+                req.socket.destroy();
+                return;
+            }
+        });
+
+        req.on('end', () => {
+            try {
+                const productData = JSON.parse(body);
+                const result = createStaffProduct(opId, sectionCode, productData);
+                res.writeHead(result.success ? 201 : 400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(result, null, 2));
+            } catch (err) {
+                console.error('Error creating staff product:', err);
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: err.message }));
+            }
+        });
+        return;
+    }
+
+    // DELETE /api/operations/{opId}/staff/{code}/products/{id} - Delete product
+    if (pathname.match(/^\/api\/operations\/[^/]+\/staff\/[^/]+\/products\/[^/]+$/) && req.method === 'DELETE') {
+        const pathParts = pathname.split('/');
+        const opId = pathParts[3];
+        const sectionCode = pathParts[5];
+        const productId = pathParts[7];
+
+        try {
+            const result = deleteStaffProduct(opId, sectionCode, productId);
+            res.writeHead(result.success ? 200 : 404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result, null, 2));
+        } catch (err) {
+            console.error('Error deleting staff product:', err);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err.message }));
+        }
+        return;
+    }
+
+    // GET /api/operations/{opId}/annexes - List all annexes with status
+    if (pathname.match(/^\/api\/operations\/[^/]+\/annexes$/) && req.method === 'GET') {
+        const opId = pathname.split('/')[3];
+
+        try {
+            const annexes = getAnnexStatus(opId);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(annexes, null, 2));
+        } catch (err) {
+            console.error(`Error getting annexes:`, err);
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: err.message }));
         }

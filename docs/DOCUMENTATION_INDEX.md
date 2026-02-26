@@ -46,9 +46,7 @@
 | [docs/roles/ROLES.md](./docs/roles/ROLES.md) | How to switch between roles | Analysts |
 | [docs/roles/task-role-map.md](./docs/roles/task-role-map.md) | Which role to use for specific tasks | Analysts |
 | [docs/roles/mdmp-role-mapping.md](./docs/roles/mdmp-role-mapping.md) | How roles support MDMP steps | Planners |
-| [docs/personnel/skill-cyberopsplanner.yaml](./docs/personnel/skill-cyberopsplanner.yaml) | Planner role definition | Planners |
-| [docs/personnel/skill-host-analyst.yaml](./docs/personnel/skill-host-analyst.yaml) | Host analyst role definition | Host Analysts |
-| [docs/personnel/skill-network-analyst.yaml](./docs/personnel/skill-network-analyst.yaml) | Network analyst role definition | Network Analysts |
+| [docs/roles/*.yaml](./docs/roles/) | 10 staff role definitions (YAML) | All staff sections |
 
 ---
 

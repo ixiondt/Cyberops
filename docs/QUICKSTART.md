@@ -42,7 +42,7 @@ You should get a structured response from the **Cyber Operations Planner** role.
 ### 1. Create a New Conversation
 
 ### 2. Paste System Context
-Copy the `system_prompt` section from one of the YAML files in `docs/personnel/`:
+Copy the `system_prompt` section from one of the YAML files in `docs/roles/`:
 - `skill-cyberopsplanner.yaml`
 - `skill-host-analyst.yaml`
 - `skill-network-analyst.yaml`

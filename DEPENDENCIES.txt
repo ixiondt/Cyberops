@@ -68,10 +68,10 @@ Creates node_modules/ with all transitive dependencies.
 **Claude Code CLI Requirements:**
 - Claude Code installed and configured
 - CLAUDE.md system prompt (included in project root)
-- Three AI role definitions (in docs/personnel/):
-  - skill-cyberopsplanner.yaml
-  - skill-host-analyst.yaml
-  - skill-network-analyst.yaml
+- Ten AI role definitions (in docs/roles/):
+  - skill-cyberopsplanner.yaml, skill-host-analyst.yaml, skill-network-analyst.yaml
+  - skill-g2-intelligence.yaml, skill-g3-operations.yaml, skill-g4-logistics.yaml
+  - skill-g6-signal.yaml, skill-fires.yaml, skill-engineer.yaml, skill-protection.yaml
 
 **Invocation:**
 ```bash

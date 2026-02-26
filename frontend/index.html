@@ -34,6 +34,8 @@
         <button class="tab-btn" data-view="poams">✓ POAMs</button>
         <button class="tab-btn" data-view="network-map">🔗 Network</button>
         <button class="tab-btn" data-view="intelligence">🔍 Intelligence</button>
+        <button class="tab-btn" data-view="staff-products">🏛 Staff</button>
+        <button class="tab-btn" data-view="sync-matrix">📊 Sync Matrix</button>
     </nav>
 
     <!-- Main Content Area -->
@@ -170,6 +172,30 @@
                 <h2>Intelligence & Threat Analysis</h2>
             </div>
             <div id="intelligence-content" class="intelligence-content"></div>
+        </section>
+
+        <!-- Staff Products Tab -->
+        <section id="view-staff-products" class="view-content">
+            <div class="section-header">
+                <h2>Staff Section Products</h2>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="staff-section-filter" class="filter-select" style="min-width: 180px;">
+                        <option value="">All Sections</option>
+                    </select>
+                </div>
+            </div>
+            <div id="staff-sections-grid" class="staff-sections-grid"></div>
+            <div id="staff-section-detail" class="staff-section-detail" style="display: none;"></div>
+        </section>
+
+        <!-- Synchronization Matrix Tab -->
+        <section id="view-sync-matrix" class="view-content">
+            <div class="section-header">
+                <h2>MDMP Synchronization Matrix</h2>
+                <p style="color: #94a3b8; margin: 0; font-size: 0.9rem;">Cross-Staff Integration &mdash; Products by MDMP Step and Staff Section</p>
+            </div>
+            <div id="sync-matrix-summary"></div>
+            <div id="sync-matrix-grid"></div>
         </section>
 
     </main>
@@ -362,6 +388,8 @@
     <script src="/js/network-visualization.js"></script>
     <script src="/js/incident-tracker.js"></script>
     <script src="/js/poam-tracker.js"></script>
+    <script src="/js/staff-products.js"></script>
+    <script src="/js/sync-matrix.js"></script>
     <script src="/js/dashboard-app.js"></script>
 </body>
 </html>
