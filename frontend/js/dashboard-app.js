@@ -15,8 +15,6 @@ class CyberOpsPlanner {
      * Initialize the dashboard
      */
     async init() {
-        console.log('🛡️ Initializing CyberOpsPlanner Dashboard');
-
         this.setupEventListeners();
 
         // Initialize form handlers and modal close buttons
@@ -278,78 +276,6 @@ class CyberOpsPlanner {
         } catch (err) {
             console.error('Error loading overview:', err);
             viewEl.innerHTML = `<div class="empty-state"><p>Error loading overview: ${err.message}</p></div>`;
-        }
-    }
-
-    /**
-     * Load MDMP planner view (placeholder - will be expanded)
-     */
-    async loadMDMPView() {
-        const viewEl = document.getElementById('view-mdmp');
-
-        try {
-            const products = await fetch(`${this.apiBase}/operations/${this.currentOperation.id}/mdmp-products`)
-                .then(r => r.json());
-
-            const mdmpSteps = [
-                { num: 1, name: 'Receipt of Mission', color: '#3b82f6' },
-                { num: 2, name: 'Mission Analysis', color: '#06b6d4' },
-                { num: 3, name: 'COA Development', color: '#8b5cf6' },
-                { num: 4, name: 'COA Analysis', color: '#ec4899' },
-                { num: 5, name: 'COA Comparison', color: '#f59e0b' },
-                { num: 6, name: 'COA Approval', color: '#10b981' },
-                { num: 7, name: 'Orders Production', color: '#ef4444' }
-            ];
-
-            let html = `<h2>MDMP Planning Dashboard</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem;">`;
-
-            mdmpSteps.forEach(step => {
-                const stepProducts = products.filter(p => {
-                    if (p.step === step.num.toString()) return true;
-                    if (p.step === `step${step.num}`) return true;
-                    // Also check description for step mentions
-                    return false;
-                });
-
-                html += `
-                    <div style="background-color: #334155; border: 2px solid ${step.color}; border-radius: 8px; padding: 1.5rem; cursor: pointer;">
-                        <h3 style="color: ${step.color}; margin-bottom: 0.5rem;">Step ${step.num}</h3>
-                        <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 1rem;">${step.name}</p>
-                        <p style="color: #94a3b8; font-size: 0.85rem;">${stepProducts.length} deliverable(s)</p>
-                    </div>
-                `;
-            });
-
-            html += `</div>`;
-
-            if (products.length === 0) {
-                html += `<div class="empty-state" style="margin-top: 2rem;">
-                    <p>No MDMP products yet. Create your first planning deliverable.</p>
-                </div>`;
-            } else {
-                html += `<h3 style="margin-top: 3rem;">Recent Products</h3>
-                    <div style="margin-top: 1rem;">`;
-
-                products.slice(0, 5).forEach(product => {
-                    html += `
-                        <div style="background-color: #334155; padding: 1rem; margin-bottom: 0.5rem; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <p style="color: #e2e8f0; margin-bottom: 0.25rem;">${product.title}</p>
-                                <p style="color: #94a3b8; font-size: 0.85rem;">Updated: ${this.formatDate(product.lastUpdated)}</p>
-                            </div>
-                            <span style="background-color: #475569; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem;">${product.status}</span>
-                        </div>
-                    `;
-                });
-
-                html += `</div>`;
-            }
-
-            viewEl.innerHTML = html;
-        } catch (err) {
-            console.error('Error loading MDMP view:', err);
-            viewEl.innerHTML = `<div class="empty-state"><p>Error loading MDMP planner: ${err.message}</p></div>`;
         }
     }
 

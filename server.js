@@ -1134,7 +1134,12 @@ async function handleApiRequest(pathname, req, res) {
 
     // Network Map API Endpoints
     if (pathname === '/api/network-map/data') {
-        const operationId = urlObj.searchParams.get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
+        const operationId = urlObj.searchParams.get('operation');
+        if (!operationId) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Missing required parameter: operation' }));
+            return;
+        }
         const dataFile = path.join(__dirname, `operation/${operationId}/INTELLIGENCE/network_topology_data.json`);
 
         try {
@@ -1162,17 +1167,27 @@ async function handleApiRequest(pathname, req, res) {
         }
 
         let body = '';
+        let aborted = false;
         req.on('data', chunk => {
+            if (aborted) return;
             body += chunk.toString();
             if (body.length > 10 * 1024 * 1024) {
-                req.connection.destroy();
+                aborted = true;
+                res.writeHead(413, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Payload too large' }));
+                req.socket.destroy();
             }
         });
 
         req.on('end', () => {
             try {
                 const payload = JSON.parse(body);
-                const operationId = payload.operation || 'OP-DEFENDER_DCO-RA_2026-02-23';
+                const operationId = payload.operation;
+                if (!operationId) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Missing required field: operation' }));
+                    return;
+                }
                 const dataDir = path.join(__dirname, `operation/${operationId}/INTELLIGENCE`);
 
                 // Ensure directory exists
@@ -1203,7 +1218,12 @@ async function handleApiRequest(pathname, req, res) {
     }
 
     if (pathname === '/api/export/ipb-terrain') {
-        const operationId = urlObj.searchParams.get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
+        const operationId = urlObj.searchParams.get('operation');
+        if (!operationId) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Missing required parameter: operation' }));
+            return;
+        }
         const dataFile = path.join(__dirname, `operation/${operationId}/INTELLIGENCE/network_topology_data.json`);
 
         try {
@@ -1245,7 +1265,12 @@ async function handleApiRequest(pathname, req, res) {
     // Original annex export endpoint
     if (pathname === '/api/export/annex') {
         const annexName = urlObj.searchParams.get('name') || 'ANNEX-M';
-        const operationId = urlObj.searchParams.get('operation') || 'OP-DEFENDER_DCO-RA_2026-02-23';
+        const operationId = urlObj.searchParams.get('operation');
+        if (!operationId) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Missing required parameter: operation' }));
+            return;
+        }
 
         // Map annex names to file paths
         const annexMap = {

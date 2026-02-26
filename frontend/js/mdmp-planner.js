@@ -83,8 +83,6 @@ async function renderMDMPPlanner(opId) {
         currentMDMPProducts = products;
         currentMDMPOpId = opId;
 
-        console.log('📋 Loaded MDMP products:', products.length, products);
-
         let html = `
             <div class="mdmp-steps">
                 ${MDMP_STEPS.map(step => {
@@ -123,8 +121,6 @@ async function displayMDMPStepDetails(stepNum, opId) {
     try {
         const step = MDMP_STEPS.find(s => s.num === stepNum);
         const products = getStepDeliverables(stepNum, currentMDMPProducts);
-
-        console.log(`📋 Step ${stepNum} products:`, products);
 
         let html = `
             <div style="margin-bottom: 1.5rem;">
